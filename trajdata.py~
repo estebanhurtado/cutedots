@@ -125,6 +125,7 @@ class Traj:
     def newFromPoint(point, frameNum):
         newTraj = Traj(frameNum)
         newTraj.addPoint(point)
+        print "new traj at frame %d" % newTraj.beginFrame
         return newTraj
 
     def addPoint(self, point):

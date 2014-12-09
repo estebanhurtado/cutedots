@@ -286,7 +286,6 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
 
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
-        self.setWindowIcon(QtGui.QIcon('icon.png'))
         self.initUI()
 
     def initUI(self):

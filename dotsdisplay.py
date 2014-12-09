@@ -86,7 +86,7 @@ class DotsDisplay:
                 x2,y2,z2 = p2
                 x3,y3,z3 = p3
                 self.subjColor(subj, self.model.bodyTrans)
-                drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3)
+                drObj.drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3)
 
     def drawSelSquare(self, frame):
         "Draw selection square and write label."

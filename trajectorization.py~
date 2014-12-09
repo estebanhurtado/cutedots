@@ -63,8 +63,10 @@ class Trajectorizer:
             broken.extend(toMove)
             current.extend(toAdd)
 
-            if not (self.progress is None) and (fr % 100 == 0):
-                self.progress.setValue( int(100.*fr / self.rdata.numFrames) )
+        #    if not (self.progress is None) and (fr % 100 == 0):
+        #        self.progress.setValue( int(100.*fr / self.rdata.numFrames) )
+        #        if self.progress.wasCanceled:
+        #            return
         
         self.trajs = broken + current
         if not (self.progress is None):
@@ -72,7 +74,6 @@ class Trajectorizer:
 
 
     def matchAdjacentTrajs(self, gap):
-        print("  matching %d trajectories") % len(self.trajs)
         while True:
             adj = self.findAdjacentTrajs(gap)
             if len(adj) == 0:
@@ -83,6 +84,7 @@ class Trajectorizer:
                 a, b = pair
                 pa = a.predict( (-1.+gap)/2 )
                 pb = b.backPredict( (-1.-gap)/2 )
+#                print pa, pb
                 dev = float(np.sum((pb-pa)**2)**0.5)
                 errorList.append((dev,pair))
 
@@ -98,6 +100,7 @@ class Trajectorizer:
                 adj.remove(p)
             self.trajs.remove(b)
             a.pointData.extend(b.pointData)
+            
 
     def findAdjacentTrajs(self, gap):
         adjacent = []

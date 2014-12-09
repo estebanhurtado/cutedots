@@ -16,7 +16,6 @@ import h5py
 import numpy as np
 import traceback
 import trajectorization as tz
-import modelops as mops
 
 # C3D
 #####
@@ -173,11 +172,14 @@ def trajDataSaveH5(trajData, progress=None):
 def trajDataFromRawData(rdata, progress):
     t = tz.Trajectorizer(rdata, progress)
     t.trajectorize()
+
     td = TrajData()
     td.frameRate = rdata.frameRate
     td.filename = rdata.filename + '.qtd'
     td.trajs.extend(t.trajs)
     td.rename()
-    mops.guessSideAndSubject(td)
-    mops.sortTrajs(td)
+    for tr in t.trajs:
+        print str(tr)
+    print "Num frames", td.numFrames
+
     return td

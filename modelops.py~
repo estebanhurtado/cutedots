@@ -37,6 +37,7 @@ def guessSideAndSubject(data):
 
 def sortTrajs(data):
     sortTrajsSlow(data)
+#    data.trajs = sorted(data.trajs, key=lambda t: t.pointData[0][0])
 
 def sortTrajsSlow(data):
     data.trajs = sorted(data.trajs, key=lambda t: t.averageX())
