@@ -113,7 +113,7 @@ def setupDrawing(width, height):
 def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
     a = np.array([x3 - x1, y3 - y1, z3 - z1])
     b = np.array([x2 - x1, y2 - y1, z2 - z1])
-    totaln = np.crossprod(a, b)
+    totaln = np.cross(a, b)
     n = totaln / np.linalg.norm(totaln)
     if (x1 * n[0]):
         n = n * (-1, -1, -1)
@@ -123,7 +123,7 @@ def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
     vm = np.array([xm, ym, zm])
     p = vm + 80 * n
     glPushMatrix()
-    glTranslatef(p)
+    glTranslatef(p[0], p[1], p[2])
     glutSolidSphere(100, 20, 20)
     glPopMatrix()
 
