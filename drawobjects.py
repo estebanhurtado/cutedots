@@ -9,7 +9,7 @@ FLOOR_COLOR = tuple(np.array([69., 78., 178., 1.0]) / (255.))
 def drawWall(width, height, hdivs, vdivs):
   hdiv = float(width) / float(hdivs)
   vdiv = float(height) / float(vdivs)
-  glColor(1,1,1,0.3)
+  glColor(1., 1., 1., .2)
   glBegin(GL_LINES)
   glNormal3f(0.0, 0.0, -1.0)
   # draw vertical lines

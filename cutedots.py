@@ -106,13 +106,7 @@ class GLWidget(QtOpenGL.QGLWidget):
     def initializeGL(self)   : self.dots.setupViewport(DISPLAY_WIDTH, DISPLAY_HEIGHT)
 
     def togglePlay(self):
-        # TODO
-        return
-        # dots.disp_data().toggle_play()
-        # if dots.disp_data().playing == 1:
-        #     self.timer.start(25)
-        # else:
-        #     self.timer.stop()
+        self.parentWindow.transport.togglePlay()
  
     def keyPressEvent(self, e):
         key = e.key()
@@ -121,11 +115,11 @@ class GLWidget(QtOpenGL.QGLWidget):
         if key == Qt.Key_Right:     model.frame = min(model.frame+1, model.data.numFrames-1)
         elif key == Qt.Key_Left:  model.frame = max(model.frame-1, 0)
         # Rotation
-        elif   key == Qt.Key_A:    model.cam.rotation -= 2
-        elif key == Qt.Key_D:      model.cam.rotation += 2
+        elif   key == Qt.Key_A:    model.cam.rotation -= 4
+        elif key == Qt.Key_D:      model.cam.rotation += 4
         # Zoom
-        elif key == Qt.Key_S:      model.cam.py -= 25  
-        elif key == Qt.Key_W:      model.cam.py += 25
+        elif key == Qt.Key_S:      model.cam.py -= 50  
+        elif key == Qt.Key_W:      model.cam.py += 50
         # Curve selection
         elif key == Qt.Key_R:      model.selPrevUnlabTraj()
         elif key == Qt.Key_T:      model.selNextUnlabTraj()
@@ -149,6 +143,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         elif key == Qt.Key_Z:      model.deleteCurrent()
         elif key == Qt.Key_U:      model.undelete()
 #        elif key == Qt.Key_K:      model.deleteUnassigned()
+        elif key == Qt.Key_Space:  self.togglePlay()
         self.updateGL()
         self.parentWindow.updateStatus()
         self.parentWindow.updateFrame()
@@ -527,8 +522,9 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         progress = self.mkProgress("Loading C3D...", 100, "Cancel")
         self.gl.dots.loadData(fn, progress)
         progress.close()
-        modelops.sortTrajs(self.data)
+        progress.destroy()
         del progress
+        modelops.sortTrajs(self.data)
         self.setWindowTitle("Cute dots - " + fn)
 
     def importC3D(self):
@@ -538,6 +534,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         progress = self.mkProgress("Importing...")
         qtdFn = preprocess.ppC3D(fn, progress)
         progress.close()
+        progress.destroy()
         del progress
         self.loadDataFile(qtdFn)
 
@@ -548,6 +545,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         progress = self.mkProgress("Importing...")
         qtdFn = preprocess.ppCSV(fn, progress)
         progress.close()
+        progress.destroy()
         del progress
         self.loadDataFile(qtdFn)
 
@@ -557,6 +555,8 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             progress = self.mkProgress("Saving...", 100, "Cancel")
             dotsio.trajDataSaveH5(self.data, progress)
             self.data.changed = False
+            progress.close()
+            progress.destroy()
             del progress
 
     @ifDataLoaded
@@ -592,6 +592,9 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
                 break
             progress.setValue(frameNum)
         progress.setValue(self.model.numFrames)
+        progress.close()
+        progress.destroy()
+        del progress
 
     @warnIfNoDataLoaded
     @updateDisplay
@@ -604,6 +607,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         progress = self.mkProgress("Rotating 90 degrees...")
         modelops.rotate90Deg(self.data, progress)
         progress.close()
+        progress.destroy()
         del progress
 
     @warnIfNoDataLoaded
@@ -611,6 +615,9 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     def swap(self):
         progress = self.mkProgress("Swapping subjects...")
         modelops.swapSubjects(self.data, progress)
+        progress.close()
+        progress.destroy()
+        del progress
 
     @warnIfNoDataLoaded
     @updateDisplay
@@ -618,6 +625,9 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     def averageTrajs(self):
         progress = self.mkProgress("Averaging same name trajectories...")
         modelops.averageSameNameTrajectories(self.data, progress)
+        progress.close()
+        progress.destroy()
+        del progress
 
     @warnIfNoDataLoaded
     @updateDisplay
@@ -659,12 +669,18 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     def fillSmallGaps(self):
         progress = self.mkProgress("Filling small gaps...")
         modelops.fillGaps(self.data, 0.2, 0.2, progress)
+        progress.close()
+        progress.destroy()
+        del progress
 
     @warnIfNoDataLoaded
     @updateStatus
     def fillAllGaps(self):
         progress = self.mkProgress("Filling all gaps...")
         modelops.fillGaps(self.data, self.data.numFrames / self.data.framerate, 0.2, progress)
+        progress.close()
+        progress.destroy()
+        del progress
 
     @warnIfNoDataLoaded
     @updateNumFrames
@@ -753,4 +769,7 @@ def main():
 
 #import cProfile
 #cProfile.run('main()', sort='cumulative')
+
+from OpenGL.GLUT import glutInit
+glutInit(sys.argv)
 main()
