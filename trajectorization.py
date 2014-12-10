@@ -1,6 +1,7 @@
 from trajdata import *
 import scipy.spatial.distance as spd
 import numpy as np
+from PySide import QtCore
 
 class Trajectorizer:
 
@@ -65,7 +66,8 @@ class Trajectorizer:
 
             if not (self.progress is None) and (fr % 100 == 0):
                 self.progress.setValue( int(100.*fr / self.rdata.numFrames) )
-        
+                QtCore.QApplication.processEvents
+
         self.trajs = broken + current
         if not (self.progress is None):
             self.progress.setValue(100)

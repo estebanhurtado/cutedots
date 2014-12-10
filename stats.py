@@ -32,7 +32,6 @@ class TrajSignal:
 
     def __and__(self, other):
         "Returns the two signals sliced to the same range of their intersecting time"
-        print self.beginFrame, other.beginFrame, self.endFrame, other.endFrame
         begin = max(self.beginFrame, other.beginFrame)
         end = min(self.endFrame, other.endFrame)
         selfSlice = self.slice(begin, end)
@@ -62,7 +61,11 @@ def covMat(tsigs):
     return m
 
 def pca(trajdata):
-    cm = covMat(speeds(trajdata))
+    spd = speeds(trajdata)
+    cm = covMat(spd)
+    names = [t.name for t in spd]
+    header = ",".join(names)
+    np.savetxt("cov.csv", cm, delimiter=",", header=header)
     eigval, eigvec = la.eigh(cm)
     idx = np.argsort(eigval)[::-1]
     eigval = eigval[idx]
