@@ -111,7 +111,21 @@ def setupDrawing(width, height):
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
-    pass
+    a = np.array([x3 - x1, y3 - y1, z3 - z1])
+    b = np.array([x2 - x1, y2 - y1, z2 - z1])
+    totaln = np.crossprod(a, b)
+    n = totaln / np.linalg.norm(totaln)
+    if (x1 * n[0]):
+        n = n * (-1, -1, -1)
+    xm = (x1 + x2 + x3) / 3.
+    ym = (y1 + y2 + y3) / 3.
+    zm = (z1 + z2 + z3) / 3.
+    vm = np.array([xm, ym, zm])
+    p = vm + 80 * n
+    glPushMatrix()
+    glTranslatef(p)
+    glutSolidSphere(100, 20, 20)
+    glPopMatrix()
 
 def drawTorso(xa, ya, za, xb, yb, zb, xc, yc, zc, xd, yd, zd):
     pass
