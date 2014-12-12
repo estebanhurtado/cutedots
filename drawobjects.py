@@ -110,6 +110,15 @@ def setupDrawing(width, height):
     # Polygons
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
+def drawSolidSphere(radius, slices, stacks):
+    quadric = gluNewQuadric()
+
+    gluQuadricDrawStyle(quadric, GLU_FILL)
+    gluQuadricNormals(quadric, GLU_SMOOTH)
+    gluSphere(quadric, radius, slices, stacks)
+
+    gluDeleteQuadric(quadric)
+
 def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
     a = np.array([x3 - x1, y3 - y1, z3 - z1])
     b = np.array([x2 - x1, y2 - y1, z2 - z1])
@@ -124,7 +133,7 @@ def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
     p = vm + 80 * n
     glPushMatrix()
     glTranslatef(p[0], p[1], p[2])
-    glutSolidSphere(100, 20, 20)
+    drawSolidSphere(100, 20, 20)
     glPopMatrix()
 
 def drawTorso(xa, ya, za, xb, yb, zb, xc, yc, zc, xd, yd, zd):
