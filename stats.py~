@@ -1,7 +1,7 @@
 import scipy as sp
 import numpy as np
 from scipy import linalg as la
-
+import pylab as pl
 
 class TrajSignal:
     """Similar to traj. But instead of a list of points, it's data member
@@ -32,7 +32,6 @@ class TrajSignal:
 
     def __and__(self, other):
         "Returns the two signals sliced to the same range of their intersecting time"
-        print self.beginFrame, other.beginFrame, self.endFrame, other.endFrame
         begin = max(self.beginFrame, other.beginFrame)
         end = min(self.endFrame, other.endFrame)
         selfSlice = self.slice(begin, end)
@@ -62,11 +61,43 @@ def covMat(tsigs):
     return m
 
 def pca(trajdata):
-    cm = covMat(speeds(trajdata))
+    spd = speeds(trajdata)
+    cm = covMat(spd)
+    names = [t.name for t in spd]
+    header = ",".join(names)
+    np.savetxt("cov.csv", cm, delimiter=",", header=header)
     eigval, eigvec = la.eigh(cm)
     idx = np.argsort(eigval)[::-1]
     eigval = eigval[idx]
     eigvec = eigvec[idx]
-    print cm
-    print eigvec
-    print eigval
+
+    eye = np.eye(trajdata.numTrajs)
+    dirs = np.dot(eigvec[:2,:],eye)
+    print dirs
+    print np.shape(dirs)
+
+# soa = np.array( [ [0,0,3,2], [0,0,1,1],[0,0,9,9]]) 
+# X,Y,U,V = zip(*soa)
+
+    names = np.array([t.name for t in trajdata.trajs])
+    names = names[idx]
+
+    numDirs = np.shape(dirs)[1]
+    pl.figure()
+    ax = pl.gca()
+    for i in range(numDirs):
+        pl.text(dirs[0,i], dirs[1,i], names[i])
+#    pl.draw()
+    pl.show()
+
+# ax = plt.gca()
+# ax.quiver(X,Y,U,V,angles='xy',scale_units='xy',scale=1)
+# ax.set_xlim([-1,10])
+# ax.set_ylim([-1,10])
+# plt.draw()
+# plt.show()
+    
+
+    #print cm
+    #print eigvec
+    #print eigval

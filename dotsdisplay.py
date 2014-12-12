@@ -159,7 +159,7 @@ class DotsDisplay:
 
     def draw(self):
         "Draw everything for current frame."
-        frame = self.model.frame
+        frame = self.model.frameNum
         glPushMatrix()
         self.rotateScene()
         glColor3f(0.2, 0.2, 0.4)

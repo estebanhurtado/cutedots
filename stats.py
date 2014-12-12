@@ -49,20 +49,28 @@ def speeds(trajdata):
         
 def covMat(tsigs):
     N = len(tsigs)
-    m = np.zeros((N,N))
-    for i in range(N):
-        for j in range(N):
-            a,b = tsigs[i] & tsigs[j]
-            c = np.cov(a.data,b.data)
-            m[i,j] = c[0,1]
-            m[j,i] = c[1,0]
-            m[i,i] = c[0,0]
-            m[j,j] = c[1,1]
-    return m
+
+    minBegin = min([t.beginFrame for t in tsigs]) 
+    maxBegin = max([t.beginFrame for t in tsigs]) 
+    minEnd = min([t.endFrame for t in tsigs]) 
+    maxEnd = max([t.endFrame for t in tsigs]) 
+
+    if minBegin != maxBegin or minEnd != maxEnd:
+        print("Could not calculate covariance matrix")
+        print("Different start points or end points")
+        print("%d,%d - %d,%d" % (minBegin,maxBegin,minEnd,maxEnd))
+    else:
+        return np.cov([t.data for t in tsigs])
 
 def pca(trajdata):
     spd = speeds(trajdata)
     cm = covMat(spd)
+    print np.shape(cm)
+    for i in range(np.shape(cm)[0]):
+        for j in range(np.shape(cm)[1]):
+            print "%.2f" % cm[i,j],
+        print ""
+
     names = [t.name for t in spd]
     header = ",".join(names)
     np.savetxt("cov.csv", cm, delimiter=",", header=header)
@@ -71,26 +79,21 @@ def pca(trajdata):
     eigval = eigval[idx]
     eigvec = eigvec[idx]
 
-    eye = np.eye(trajdata.numTrajs)
-    dirs = np.dot(eigvec[:2,:],eye)
-    print dirs
-    print np.shape(dirs)
+#    eye = np.eye(trajdata.numTrajs)
+#    dirs = np.dot(eigvec[:2,:],eye)
+#    print dirs
+#    print np.shape(dirs)
 
-# soa = np.array( [ [0,0,3,2], [0,0,1,1],[0,0,9,9]]) 
-# X,Y,U,V = zip(*soa)
+#    names = np.array([t.name for t in trajdata.trajs])
+#    names = names[idx]
 
-    names = np.array([t.name for t in trajdata.trajs])
-    names = names[idx]
-
-    numDirs = np.shape(dirs)[1]
-    pl.figure()
-    ax = pl.gca()
-    for i in range(numDirs):
-        pl.text(dirs[0,i], dirs[1,i], names[i])
-
-
-    pl.draw()
-    pl.show()
+#    numDirs = np.shape(dirs)[1]
+#    pl.figure()
+#    ax = pl.gca()
+#    for i in range(numDirs):
+#        pl.text(dirs[0,i], dirs[1,i], names[i])
+#    pl.draw()
+#    pl.show()
 
 # ax = plt.gca()
 # ax.quiver(X,Y,U,V,angles='xy',scale_units='xy',scale=1)

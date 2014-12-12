@@ -15,8 +15,6 @@ import c3dformat
 from numpy import size
 import sys
 import numpy as np
-import scipy as sp
-import scipy.spatial.distance as spDistance
 from sys import float_info
 import os
 
@@ -40,6 +38,11 @@ class RawFrame:
         return self.data[index,:]
 
     def joinClosePoints(self, maxDist=1):
+        try:
+            import scipy.spatial.distance as spDistance
+        except:
+            pass
+
         # Initially all points are marked unique
         uniquePoint = [True] * self.numPoints
         sqDistance = spDistance.squareform(spDistance.pdist(self.data))

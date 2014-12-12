@@ -1,0 +1,5 @@
+m <- as.matrix(read.csv("cov.csv"))
+rownames(m) <- colnames(m)
+fit <- princomp(covmat=m)
+plot(fit, type="lines")
+biplot(fit)

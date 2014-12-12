@@ -11,8 +11,10 @@
 # You should have received a copy of the Reciprocal Public License along with
 # Cutedots. If not, see <http://http://opensource.org/licenses/rpl-1.5>.
 
+import pylab as pl
 import numpy as np
-from plotdialog import DataPlot
+import scipy as sp
+
 
 def plotContinuity(data):
     # Organize curves by label
@@ -26,10 +28,10 @@ def plotContinuity(data):
     for name, trajs in trajectories.items():
         y -= 10
         ticksy.append(y)
-        ticksn.append("%s (%d)" % (name, len(trajs)))
+        ticksn.append(name)
         for t in trajs:
             t0, t1 = t.beginFrame / data.framerate, (t.endFrame-1) / data.framerate
-            pl.plot([t0, t1], [y, y], linewidth=3)
+            pl.plot([t0, t1], [y, y])
     pl.yticks(ticksy, ticksn)
     pl.show()
 

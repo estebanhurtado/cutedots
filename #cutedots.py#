@@ -139,7 +139,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         elif key == Qt.Key_Comma:  model.labelPartPrev()
         elif key == Qt.Key_Period: model.labelPartNext()
         # Curve splitting (cut)
-        elif key == Qt.Key_C:      model.data.splitTraj(model.currentTraj(), model.frame) 
+        elif key == Qt.Key_C:      model.data.splitTraj(model.currentTraj, model.frameNum) 
        # Curve deletion
         elif key == Qt.Key_Z:      model.deleteCurrent()
         elif key == Qt.Key_U:      model.undelete()

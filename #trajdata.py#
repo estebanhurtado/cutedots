@@ -15,8 +15,6 @@ import c3dformat
 from numpy import size
 import sys
 import numpy as np
-import scipy as sp
-import scipy.spatial.distance as spDistance
 from sys import float_info
 import os
 
@@ -40,6 +38,11 @@ class RawFrame:
         return self.data[index,:]
 
     def joinClosePoints(self, maxDist=1):
+        try:
+            import scipy.spatial.distance as spDistance
+        except:
+            pass
+
         # Initially all points are marked unique
         uniquePoint = [True] * self.numPoints
         sqDistance = spDistance.squareform(spDistance.pdist(self.data))
@@ -97,8 +100,6 @@ class RawData:
 class Traj:
     "Same point at different frames."
 
-    nameCounter = 0
-
     @property
     def endFrame(self):
         return self.beginFrame + len(self.pointData)
@@ -107,19 +108,13 @@ class Traj:
     def numFrames(self):
         return len(self.pointData)
 
-    @property
-    def newCounter(self):
-        c = Traj.nameCounter
-        Traj.nameCounter += 1
-        return c
-
-    def __init__(self, beginFrame, name=None):
-        self.name = ("tr_%d" % self.newCounter) if name is None else name
+    def __init__(self, beginFrame, bodyPart=BodyPart()):
+        self.bodyPart = bodyPart
         self.pointData = []
         self.beginFrame = beginFrame
 
     def __str__(self):
-        return "Traj %s: %d - %d" % (self.name, self.beginFrame, self.endFrame)
+        return "Traj %s: [%d..%d]" % (self.bodyPart.short, self.beginFrame, self.endFrame)
 
     @staticmethod
     def newFromPoint(point, frameNum):

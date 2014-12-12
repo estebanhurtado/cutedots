@@ -14,25 +14,6 @@
 import numpy as np
 from plotdialog import DataPlot
 
-def plotContinuity(data):
-    # Organize curves by label
-    trajectories = dict()
-    for traj in data.trajs:
-        trajectories.setdefault(traj.name, []).append(traj)
-    # Plot
-    y = 0
-    ticksy = []
-    ticksn = []
-    for name, trajs in trajectories.items():
-        y -= 10
-        ticksy.append(y)
-        ticksn.append("%s (%d)" % (name, len(trajs)))
-        for t in trajs:
-            t0, t1 = t.beginFrame / data.framerate, (t.endFrame-1) / data.framerate
-            pl.plot([t0, t1], [y, y], linewidth=3)
-    pl.yticks(ticksy, ticksn)
-    pl.show()
-
 def energy(trajectories):
     "Returns aggregated energy signal for all markers"
 
@@ -69,7 +50,6 @@ def plotSubjectFunc(data, func, subplot=True):
             pl.ylabel("Subject %s" % subject)
         subjNum += 1
         pl.plot(t, f)
- 
 
 def plotEnergy(data):
     plotSubjectFunc(data, energy)
