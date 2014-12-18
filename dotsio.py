@@ -146,8 +146,8 @@ def readFrameFromArray2(line_array, line_number):
     '''
     - line_array is an array that in each cell stores a string float or an empty
      string.
-    - points is an int array that stores the indices in line_array that are floats
-    - 
+    - points is an int array that stores the indices in line_array that are 
+    floats.
     '''
     # This won't be used
     frame_id = int(line_array[0])
@@ -167,9 +167,6 @@ def readFrameFromArray2(line_array, line_number):
     # print ("line_array: " + str(line_array))
     # print ("points: " +  str(points))
     # divided by three because each marker has x, y, z
-    if (line_number == 44352):
-        print ("line_array: " + str(line_array))
-        print ("points: " + str(points))
     # iteration on triples (x, y, z) of every marker
     for i in range(0, len(points), 3):
         # read the next 3 elements
