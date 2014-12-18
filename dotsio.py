@@ -109,6 +109,85 @@ def readFrameFromArray(line, line_number):
     rf = RawFrame(data)
     return rf
 
+# CSV 2
+#######
+
+def rawDataFromCSV2(filename, progress):
+    with open(filename) as pointsfile:
+        framecount = 100
+        rd = RawData()
+        rd.filename = filename
+        rd.frameRate = 100.0
+        counter = 0
+
+        for line in pointsfile:
+            counter = counter + 1
+            # Line with the information
+            if (counter == 1):
+                line_array = line.split(',')
+                framecount = int(line_array[11])
+            # Line containing a frame
+            if (counter > 7):
+                line_array = line.split(',')
+                i = len(rd.frames)
+                if i % 1000 == 0:
+                    progress.setValue( int(100.0*i / framecount) )
+                if progress.wasCanceled():
+                    return
+                rd.frames.append(readFrameFromArray2(line_array, i))
+        progress.setValue(100)
+    
+    if (not framecount):
+        print ('Error frame count not found!')
+
+    return rd
+    
+def readFrameFromArray2(line_array, line_number):
+    '''
+    - line_array is an array that in each cell stores a string float or an empty
+     string.
+    - points is an int array that stores the indices in line_array that are floats
+    - 
+    '''
+    # This won't be used
+    frame_id = int(line_array[0])
+    frame_timestamp = float(line_array[1])
+
+    # This will
+    marker_count = 0
+    points = []
+    frame_scale = 800
+    start = 2
+    # read the indices in the array of the markers present in this frame
+    for i in range(start, len(line_array)):
+        if (line_array[i] and line_array[i] != "\r\n"):
+            points.append(i)
+    data = np.zeros((len(points)/3, 4), dtype = np.float32)
+    # print ("frame number: " + str(line_number))
+    # print ("line_array: " + str(line_array))
+    # print ("points: " +  str(points))
+    # divided by three because each marker has x, y, z
+    if (line_number == 44352):
+        print ("line_array: " + str(line_array))
+        print ("points: " + str(points))
+    # iteration on triples (x, y, z) of every marker
+    for i in range(0, len(points), 3):
+        # read the next 3 elements
+        # if (line_number == 44352):
+        # print ("i: " + str(i))
+        # print ("line_array[i]: " + line_array[points[i]])
+        # print ("marker_count: " + str(marker_count))
+        #x
+        data[marker_count, 0] = np.float32(line_array[points[i]]) * frame_scale
+        #y
+        data[marker_count, 2] = np.float32(line_array[points[i + 1]]) * frame_scale
+        #z
+        data[marker_count, 1] = np.float32(line_array[points[i + 2]]) * -1 * frame_scale
+        marker_count = marker_count + 1
+    # print ("data: " + str(data))
+    rf = RawFrame(data)
+    return rf
+
 # HDF5
 ######
 

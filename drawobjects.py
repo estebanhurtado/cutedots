@@ -137,4 +137,43 @@ def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
     glPopMatrix()
 
 def drawTorso(xa, ya, za, xb, yb, zb, xc, yc, zc, xd, yd, zd):
-    pass
+
+    za = za + 20
+    zb = zb + 20
+    top_thick = 50
+    bottom_thick = 40
+
+    glBegin(GL_QUADS)
+    try:
+      glVertex3fv((xa+top_thick,ya,za))
+      glVertex3fv((xb+top_thick,yb,zb))
+      glVertex3fv((xc+bottom_thick,yc,zc))
+      glVertex3fv((xd+bottom_thick,yd,zd))
+
+      glVertex3fv((xa-top_thick,ya,za))
+      glVertex3fv((xb-top_thick,yb,zb))
+      glVertex3fv((xc-bottom_thick,yc,zc))
+      glVertex3fv((xd-bottom_thick,yd,zd))
+
+      glVertex3fv((xc-bottom_thick,yc,zc))
+      glVertex3fv((xd-bottom_thick,yd,zd))
+      glVertex3fv((xd+bottom_thick,yd,zd))
+      glVertex3fv((xc+bottom_thick,yc,zc))
+
+      glVertex3fv((xa-top_thick,ya,za))
+      glVertex3fv((xb-top_thick,yb,zb))
+      glVertex3fv((xb+top_thick,yb,zb))
+      glVertex3fv((xa+top_thick,ya,za))
+      
+      glVertex3fv((xa-top_thick,ya,za))
+      glVertex3fv((xd-bottom_thick,yd,zd))
+      glVertex3fv((xd+bottom_thick,yd,zd))
+      glVertex3fv((xa+top_thick,ya,za))
+
+      glVertex3fv((xb-top_thick,yb,zb))
+      glVertex3fv((xc-bottom_thick,yc,zc))
+      glVertex3fv((xc+bottom_thick,yc,zc))
+      glVertex3fv((xb+top_thick,yb,zb))
+
+    finally:
+      glEnd()

@@ -397,6 +397,8 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             'Read and trajectorize data from CSV file ' + \
             '(creates new CuteDots file on disk)',
             self.importCSV)
+        importCSV2Action = self.mkAction('&Import CSV2 file...',
+            'Read from CSV file using Motive <1.7', self.importCSV2)
         saveAction = self.mkAction(
             '&Save',
             'Save to HDF5 file (.qtd).',
@@ -485,7 +487,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         # Menu bar
         menubar = self.menuBar()
         self.mkMenu(menubar, '&File',
-                    [loadAction, importC3DAction, importCSVAction, None,
+                    [loadAction, importC3DAction, importCSVAction, importCSV2Action, None,
                      saveAction, saveAsAction, saveSeqAction, None,
                      exitAction, exitNoSaveAction])
         self.mkMenu(menubar, '&Operations',
@@ -546,6 +548,16 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         qtdFn = preprocess.ppCSV(fn, progress)
         progress.close()
         progress.destroy()
+        del progress
+        self.loadDataFile(qtdFn)
+
+    def importCSV2(self):
+        fn,x = QtGui.QFileDialog.getOpenFileName(None, 'Import a CSV2 data file')
+        if fn == '':
+            return
+        progress = self.mkProgress("Importing...")
+        qtdFn = preprocess.ppCSV2(fn, progress)
+        progress.close()
         del progress
         self.loadDataFile(qtdFn)
 
