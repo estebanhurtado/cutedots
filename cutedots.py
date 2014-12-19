@@ -31,6 +31,7 @@ import sys
 import time
 import traceback
 import stats
+from plotdialog import DataPlot
 
 about_text = """
 Copyright 2012 Esteban Hurtado
@@ -283,6 +284,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
         self.setWindowIcon(QtGui.QIcon('icon.png'))
         self.initUI()
+        self.dataPlot = DataPlot(self)
 
     def initUI(self):
         self.initMenu()
@@ -653,7 +655,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
 
     @warnIfNoDataLoaded
     def plotContinuity(self):
-        analysis.plotContinuity(self.data)
+        self.dataPlot.plotContinuity(self.data)
 
     @warnIfNoDataLoaded
     def plotEnergy(self):
@@ -783,5 +785,4 @@ def main():
 #cProfile.run('main()', sort='cumulative')
 
 from OpenGL.GLUT import glutInit
-glutInit(sys.argv)
 main()

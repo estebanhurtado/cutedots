@@ -303,3 +303,28 @@ class TrajData(object):
         for t in self.trajs:
             t.beginFrame -= cutFrame
         self.changed = True
+
+    def checkContinuity(self):
+        "Checks all trajs have same length and starting frame"
+        if self.empty():
+            return True
+        first = self.trajs[0]
+        numFrames = first.numFrames
+        beginFrame = first.beginFrame
+        for traj in self.trajs[1:]:
+            if numFrames != traj.numFrames or beginFrame != traj.beginFrame:
+                return false
+        return True
+
+    class ContinuityError(Exception):
+        def __str__(self):
+            return "Could not extract continuous data. " + \
+                   "Please check that all trajectories " + \
+                   "are the same length and start at the same frame"
+
+
+    def toArray(self):
+        if not self.checkContinuity():
+            raise TrajData.ContinuityError()
+        return np.array([t.pointData for t in self.trajs])
+            
