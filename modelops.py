@@ -24,14 +24,14 @@ class ProcessingException(Exception):
 def guessSideAndSubject(data):
     for t in data.trajs:
         n = t.name
-        if n[:3] == 'tr_':
-            avg = t.average()
-            if avg[0] < 0.0:
-                if avg[1] < 0.0: t.name = 'trR1'
-                else:            t.name = 'trL1'
-            else:
-                if avg[1] < 0.0: t.name = 'trL2'
-                else:            t.name = 'trR2'
+        n2 = n[:2]
+        avg = t.average()
+        if avg[0] < 0.0:
+            if avg[1] < 0.0: t.name = n2 + 'R1'
+            else:            t.name = n2 +'L1'
+        else:
+            if avg[1] < 0.0: t.name = n2 + 'L2'
+            else:            t.name = n2 + 'R2'
     data.changed = True
 
 
