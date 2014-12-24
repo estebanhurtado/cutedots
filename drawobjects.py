@@ -2,9 +2,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import numpy as np
-
-FLOOR_COLOR = tuple(np.array([69., 78., 178., 1.0]) / (255.))
-
+from math import copysign
 
 def drawWall(width, height, hdivs, vdivs):
   hdiv = float(width) / float(hdivs)
@@ -30,10 +28,12 @@ def drawWall(width, height, hdivs, vdivs):
 
 def drawFloor():
     glLineWidth(1)
-    glColor4f(0.067647058823529407, 0.076470588235294124, 0.17450980392156862,1.0)
+    glColor4fv([0.03, 0.05, 0.15,1.0])
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, (0.1,0.1,0.1,1.0))
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, (0.0,0.0,0.0,1.0))
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0)
     glBegin(GL_QUADS)
+    glNormal3f(0,0,1)
     glVertex(2500, 2500)
     glVertex(2500, -2500)
     glVertex(-2500, -2500)
@@ -55,10 +55,11 @@ def drawWalls():
     drawSideWall(-2500.0,0.0, 1250.0, 0.0, 1.0, 0.0, 2500.0, 5000.0, 10, 20)
 
 def drawChairs():
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, (0.02,0.02,0.02,1.0))
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, (0.2,0.2,0.2,1.0))
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0)
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 80.0)
     glPushMatrix()
-    glColor4f(0.06, 0.06, 0.06, 1.0)
+    glColor4f(0.08, 0.08, 0.08, 1.0)
     glTranslatef(-700, 0, 225)
     glutSolidCube(450)
     glTranslatef(1400, 0, 0)
@@ -66,10 +67,9 @@ def drawChairs():
     glPopMatrix()
 
 def setupDrawing(width, height):
-
     # Set model
     glMatrixMode(GL_MODELVIEW)
-    glClearColor(0.4, 0.2, 0.15, 1.0)
+    glClearColor(0.5, 0.15, 0.165, 1.0)
     glEnable(GL_DEPTH_TEST)
 
     # Lighting
@@ -112,11 +112,9 @@ def setupDrawing(width, height):
 
 def drawSolidSphere(radius, slices, stacks):
     quadric = gluNewQuadric()
-
     gluQuadricDrawStyle(quadric, GLU_FILL)
     gluQuadricNormals(quadric, GLU_SMOOTH)
     gluSphere(quadric, radius, slices, stacks)
-
     gluDeleteQuadric(quadric)
 
 def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
@@ -131,17 +129,21 @@ def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
     zm = (z1 + z2 + z3) / 3.
     vm = np.array([xm, ym, zm])
     p = vm + 80 * n
+    p[2] -= 20
+    p[0] -= copysign(10,p[0])
     glPushMatrix()
     glTranslatef(p[0], p[1], p[2])
-    drawSolidSphere(100, 20, 20)
+    drawSolidSphere(120, 20, 20)
     glPopMatrix()
 
 def drawTorso(xa, ya, za, xb, yb, zb, xc, yc, zc, xd, yd, zd):
 
-    za = za + 20
-    zb = zb + 20
-    top_thick = 50
-    bottom_thick = 40
+    za += 30
+    zb += 30
+    xc += copysign(20,xc)
+    xd += copysign(20,xd)
+    top_thick = 80
+    bottom_thick = 60
 
     glBegin(GL_QUADS)
     try:
