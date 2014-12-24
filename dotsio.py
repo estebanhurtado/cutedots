@@ -22,7 +22,7 @@ import modelops as mops
 #####
 
 def rawDataFromC3D(c3d, progress):
-    numFrames = c3d.header.numFrames()
+    numFrames = c3d.numFrames
     print("Num. frames: %d" % numFrames)
     rd = RawData()
     rd.filename = c3d.filename

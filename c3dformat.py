@@ -13,6 +13,7 @@
 
 import struct
 from numpy import fromstring, reshape, dtype, float32
+import numpy as np
 
 # Binary structure for reading file data blocks.
 class BinStruct:
@@ -67,6 +68,7 @@ class C3dHeader(BinStruct):
         ]
         BinStruct.__init__(self, structList)
         self.parseStr(string)
+    @property
     def numFrames(self):
         return self.lastFrameNum - self.firstFrameNum + 1
 
@@ -152,6 +154,7 @@ class P3df:
     structLen = 16
     def __init__(self, string):
         self.x, self.y, self.z, self.camResids = struct.unpack("ffff", string[:16])
+    @property
     def isValid(self):
         return self.camResids >= 0.0
 
@@ -160,6 +163,7 @@ class P3di:
     structLen = 8
     def __init__(self, string):
         self.x, self.y, self.z, self.camResids = struct.unpack("hhhh", string[:8])
+    @property
     def isValid(self):
         return self.camResids >= 0
 
@@ -173,7 +177,14 @@ class C3d:
     def __init__(self, filename):
         fin = file(filename, 'rb')
         self.filename = filename
+        self.data = None
         self.read(fin)
+    @property
+    def numFrames(self):
+        if self.data is None:
+            return 0
+        else:
+            return np.shape(self.data)[0]
     def read(self, fin):
         # Read header
         data = fin.read(512)
@@ -216,7 +227,7 @@ class C3d:
         for i in range(self.header.numPoints):
             self.pointLabels.append(text[i*labelLen:(i+1)*labelLen].strip(" "))
         # Read data section
-        numFrames = self.header.lastFrameNum - self.header.firstFrameNum + 1
+        numFrames = self.header.numFrames
         numPoints = self.header.numPoints
         totalNumbers = numFrames * numPoints * 4
         fin.seek(512 * (self.header.dataStart - 1))

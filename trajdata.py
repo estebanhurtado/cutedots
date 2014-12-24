@@ -228,6 +228,14 @@ class TrajData(object):
 
     """
 
+    def __init__(self):
+        self.trajs = []
+        self.filename = None
+        self.framerate = 100.0
+        self.changed = False
+        self.trash = []
+        self.framePointCount = None
+
     @property
     def numFrames(self):
         if len(self.trajs) == 0:
@@ -248,13 +256,16 @@ class TrajData(object):
     def empty(self):
         return self.numFrames == 0
 
-    def __init__(self):
-        self.trajs = []
-        self.filename = None
-        self.framerate = 100.0
-        self.changed = False
-        self.trash = []
+    def countPoints(self):
+        count = np.zeros(self.numFrames, dtype=int)
+        for t in self.trajs:
+            count[t.beginFrame:t.endFrame] += 1
+        self.framePointCount = count
 
+    def numPoints(self, numFrame):
+        if self.framePointCount is None or self.changed:
+            self.countPoints()
+        return self.framePointCount[numFrame]
 
     def rename(self):
         for i in range(len(self.trajs)):

@@ -3,6 +3,19 @@ import scipy.spatial.distance as spd
 import numpy as np
 from PySide import QtCore
 
+def metricEuclidean(gap):
+    def metric(a,b):
+        return np.sum((b.pointData[0] - a.pointData[-1])**2)**0.5
+    return metric
+
+def metricEuclideanPredict(gap):
+    def metric(a,b):
+        pa = a.predict( (-1.+gap)/2 )
+        pb = b.backPredict( (-1.-gap)/2 )
+        return float(np.sum((pb-pa)**2)**0.5)
+    return metric
+
+
 class Trajectorizer:
 
     def __init__(self, rdata, progress=None):
@@ -11,23 +24,43 @@ class Trajectorizer:
         self.trajs = []
         self.distanceThreshold = 10
 
-        self.memento = dict()
-        self.metric = None
-
     def trajectorize(self):
         print("Trajectorization")
         print("- Distance based trajectorization...")
         self.distanceTraj()
         print("- Matching adjacent trajectories...")
-        self.matchAdjacentTrajs(0)
-#        print("- Matching 1 frame gap trajectories...")
-#        self.matchAdjacentTrajs(1)
-#        print("- Matching 2 frame gap trajectories...")
-#        self.matchAdjacentTrajs(2)
+        metric = metricEuclidean(0)
+        self.matchAdjacentTrajs(metric)
+        metric = metricEuclideanPredict(0)
+        self.matchAdjacentTrajs(metric)
         print("Done")
 
+    def noTraj(self):
+        trajs = []
+        for fr in range(self.rdata.numFrames):
+            trajs.extend([Traj.newFromPoint(p,fr) for p in self.rdata[fr].data])
+        self.trajs = trajs
+
+    @staticmethod
+    def findMatches(distances, threshold):
+        matches = []
+        for row in range(distances.shape[0]):
+            i, j = np.unravel_index(distances.argmin(), distances.shape)
+            if distances[i,j] > threshold:
+                return matches
+            matches.append((i,j))
+            distances[i,:] = threshold + 1
+            distances[:,j] = threshold + 1
+        return matches
+
     def distanceTraj(self):
-        self.progress.show()
+        if not (self.progress is None):
+            self.progress.setValue(0)
+            self.progress.setLabelText("Distance based trajectorization")
+            self.progress.show()
+
+        numPoints = sum([p.numPoints for p in self.rdata.frames])
+        print "Initial:", numPoints, "points"
 
         current = []
         broken = []  # To store trajectories no longer tracked
@@ -42,53 +75,46 @@ class Trajectorizer:
                 continue
 
             # Find distances from previous frame points to present
-            prev = [t[-1] for t in current]
+            prev = [t.getFrame(fr-1) for t in current]
             pres = [p for p in self.rdata[fr].data]
             sdist = spd.cdist(prev,pres)
-            
-            # For each trajectory, find closest point in new frame
-            #   if within threshold, append new point
-            #   else, move traj to broken and new point starts new traj
 
-            toMove = []
-            toAdd = []
+            # Find matches
+            matches = Trajectorizer.findMatches(sdist, self.distanceThreshold)
 
-            for i in range(sdist.shape[0]):
-                imin = np.argmin(sdist[i,:])
-                dist = sdist[i, imin]
-                p = pres[imin]
+            # Append matched points and keep track of matched trajs and points
+            matchedPts = set()
+            matchedTjs = set()
+            for prevTj, presPt in matches:
+                tj, pt = current[prevTj], pres[presPt]
+                tj.addPoint(pt)
+                matchedTjs.add(tj)
+                matchedPts.add(presPt)
+            unmatchedPts = [i for i in range(len(pres)) if not (i in matchedPts)]
+            unmatchedTjs = [t for t in current if not (t in matchedTjs)]
 
-                if dist <= self.distanceThreshold:
-                    current[i].addPoint(p)
-                else:
-                    toMove.append(current[i])
-                    toAdd.append(Traj.newFromPoint(p,fr))
+            # Make new trajs with unmatched points
+            current.extend([Traj.newFromPoint(pres[i],fr) for i in unmatchedPts])
 
-            for t in toMove:
+            # Remove unmatched trajs from current
+            for t in unmatchedTjs:
                 current.remove(t)
-            broken.extend(toMove)
-            current.extend(toAdd)
+            broken.extend(unmatchedTjs)
 
+            # Progress bar
             if not (self.progress is None) and (fr % 100 == 0):
                 self.progress.setValue( int(100.*fr / self.rdata.numFrames) )
 
         self.trajs = broken + current
+
         if not (self.progress is None):
             self.progress.setValue(100)
 
 
-    def matchAdjacentTrajs(self, gap):
+    def matchAdjacentTrajs(self, metric, gap=0):
         print("Matching adjacent trajectories")
 
-        def metric1(a,b):
-            return np.sum((b.pointData[0] - a.pointData[-1])**2)**0.5
-
-        def metric2(a,b):
-            pa = a.predict( (-1.+gap)/2 )
-            pb = b.backPredict( (-1.-gap)/2 )
-            return float(np.sum((pb-pa)**2)**0.5)
-
-        adj = self.findAdjacentTrajs(gap, metric1)
+        adj = self.findAdjacentTrajs(gap, metric)
         N = len(adj)
         print ("  %d pairs" % len(adj))
 
@@ -97,13 +123,14 @@ class Trajectorizer:
             self.progress.setLabelText("Matching adjacent trajectories (gap=%d)" % gap)
             self.progress.show()
 
-        while True:
+        while True:            
             if len(adj) == 0:
                 break
 
+            adj.sort()
             m, a, b = adj[0]
 
-            if m > 10*self.distanceThreshold:
+            if m > 2*self.distanceThreshold:
                 break
 
             # Remove pairs having a as first or b as second (idx 0 is measurement)
@@ -120,11 +147,14 @@ class Trajectorizer:
                 if p[1] == b:
                     adj[i] = (p[0], a, p[2])                    
 
-            # Merge a and b into one trajectory
-            a.pointData.extend(b.pointData)
-            self.trajs.remove(b)
-
-            print ("  %d pairs" % len(adj))
+            # Join a and b into one trajectory
+            if a == b:
+                print("Error. Tried to join the same traj.")
+            elif b.beginFrame - a.endFrame != gap:
+                print("Error. Tried to join trajs that are not adjacent.")
+            else:
+                a.pointData.extend(b.pointData)
+                self.trajs.remove(b)
 
             if not (self.progress is None):
                 n = N - len(adj)
@@ -132,53 +162,14 @@ class Trajectorizer:
 
         self.progress.setValue(100)
 
-
-
-
-#     def matchAdjacentTrajs(self, gap):
-#         print("  matching %d trajectories" % len(self.trajs))
-#         memento = set()
-#         while True:
-#             adj = self.findAdjacentTrajs(gap).difference(memento)
-#             print("  %d pairs" % len(adj))
-#             if len(adj) == 0:
-#                 break
-
-#             errorList = []
-#             for pair in adj:
-#                 a, b = pair
-#                 pa = a.predict( (-1.+gap)/2 )
-#                 pb = b.backPredict( (-1.-gap)/2 )
-#                 dev = float(np.sum((pb-pa)**2)**0.5)
-#                 errorList.append((dev,pair))
-#                 memento.add(pair)
-
-#             errorList.sort()
-
-#             mindev, pair = errorList[0]
-#             if mindev > 2*self.distanceThreshold:
-#                 break
-
-#             a, b = pair
-#             affectedPairs = [pair for pair in adj if pair[0] == a or pair[1] == b]
-#             for p in affectedPairs:
-#                 adj.remove(p)
-#             self.trajs.remove(b)
-#             a.pointData.extend(b.pointData)
-
     def findAdjacentTrajs(self, gap, metric):
         if not (self.progress is None):
             self.progress.setValue(0)
             self.progress.setLabelText("Finding adjacent trajectories")
             self.progress.show()
 
-
         N = len(self.trajs)
         NxN = N*N
-
-        if metric == self.metric:
-            self.memento = dict()
-            self.metric = metric
 
         print "Finding adjacent trajs", len(self.trajs)
         adjacent = []
@@ -187,13 +178,10 @@ class Trajectorizer:
         for a in trajs:
             for b in trajs:
                 if (a != b) and ((b.beginFrame - a.endFrame) == gap):
-                    if not (a,b) in self.memento:
-                        self.memento[(a,b)] = metric(a,b)
-                    adjacent.append( (self.memento[(a,b)], a, b) )
-                    i += 1
-                    if not (self.progress is None) and (i % 100 == 0):
-                        self.progress.setValue( int(100.0*i/NxN) )
+                    adjacent.append( (metric(a,b), a, b) )
+                i += 1
+                if not (self.progress is None) and (i % 10 == 0):
+                    self.progress.setValue( int(100.0*i/NxN) )
             
-        adjacent.sort()
         self.progress.setValue(100)
         return adjacent
