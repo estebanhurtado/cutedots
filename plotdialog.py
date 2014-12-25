@@ -11,11 +11,16 @@
 # You should have received a copy of the Reciprocal Public License along with
 # Cutedots. If not, see &lt;http://opensource.org/licenses/rpl-1.5&gt;.
 
+import os
+os.environ['QT_API'] = 'pyside' 
 from PySide import QtGui
 import matplotlib.pyplot as pl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as PLCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as PLToolbar
+import matplotlib as mpl
 import modelstate
+
+mpl.rcParams['backend.qt4'] = 'PySide'
 
 class PlotDialog(QtGui.QDialog):
     def __init__(self, parent=None):
@@ -23,12 +28,15 @@ class PlotDialog(QtGui.QDialog):
 
         self.figure = pl.figure()
         self.canvas = PLCanvas(self.figure)
-        self.toolbar = PLToolbar(self.canvas, self)
+#        self.toolbar = PLToolbar("hi",self)
+#        self.toolbar = PLToolbar(self.canvas, self)
+
+
 
         # layout
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.canvas)
-        layout.addWidget(self.toolbar)
+ #       layout.addWidget(self.toolbar)
         self.setLayout(layout)
 
     def display(self):

@@ -25,7 +25,7 @@ OpenGL.ERROR_CHECKING = False
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from OpenGL.GLUT import *
+#from OpenGL.GLUT import *
 
 class OpenFileEx(Exception):
     def __init__(self, filename, msg='Unknown error.'):
@@ -55,9 +55,9 @@ class DotsDisplay:
         n = traj.name
         side, subj = n[2], n[3]
         self.subjColor(subj, 1.0)
-        if   side == 'L':  glutSolidSphere(18, 20, 20)
-        elif side == 'R':  glutSolidCube(30)
-        else:              glutSolidSphere(8, 20, 20)
+        if   side == 'L':  drObj.drawSolidSphere(18, 20, 20)
+        elif side == 'R':  drObj.drawSolidCube(30)
+        else:              drObj.drawSolidSphere(8, 20, 20)
 
     def drawElements(self, frame):
         "Draw all markers."

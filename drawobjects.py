@@ -1,6 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from OpenGL.GLUT import *
+#from OpenGL.GLUT import *
 import numpy as np
 from math import copysign
 
@@ -61,9 +61,9 @@ def drawChairs():
     glPushMatrix()
     glColor4f(0.08, 0.08, 0.08, 1.0)
     glTranslatef(-700, 0, 225)
-    glutSolidCube(450)
+    drawSolidCube(450)
     glTranslatef(1400, 0, 0)
-    glutSolidCube(450)
+    drawSolidCube(450)
     glPopMatrix()
 
 def setupDrawing(width, height):
@@ -116,6 +116,49 @@ def drawSolidSphere(radius, slices, stacks):
     gluQuadricNormals(quadric, GLU_SMOOTH)
     gluSphere(quadric, radius, slices, stacks)
     gluDeleteQuadric(quadric)
+
+def drawSolidCube(size):
+    L = size/2
+    glBegin(GL_QUADS)
+
+    glNormal3f(1.,0.,0.)
+    glVertex3f(L,L,L)
+    glVertex3f(L,L,-L)
+    glVertex3f(L,-L,-L)
+    glVertex3f(L,-L,L)
+
+    glNormal3f(-1.,0.,0.)
+    glVertex3f(-L,L,L)
+    glVertex3f(-L,L,-L)
+    glVertex3f(-L,-L,-L)
+    glVertex3f(-L,-L,L)
+
+    glNormal3f(0.,0.,1.)
+    glVertex3f(L,L,L)
+    glVertex3f(L,-L,L)
+    glVertex3f(-L,-L,L)
+    glVertex3f(-L,L,L)
+
+    glNormal3f(0.,0.,-1.)
+    glVertex3f(L,L,-L)
+    glVertex3f(L,-L,-L)
+    glVertex3f(-L,-L,-L)
+    glVertex3f(-L,L,-L)
+
+    glNormal3f(0.,1.,0.)
+    glVertex3f(L,L,L)
+    glVertex3f(L,L,-L)
+    glVertex3f(-L,L,-L)
+    glVertex3f(-L,L,L)
+
+    glNormal3f(0.,-1.,0.)
+    glVertex3f(L,-L,L)
+    glVertex3f(L,-L,-L)
+    glVertex3f(-L,-L,-L)
+    glVertex3f(-L,-L,L)
+
+    glEnd()
+
 
 def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
     a = np.array([x3 - x1, y3 - y1, z3 - z1])
