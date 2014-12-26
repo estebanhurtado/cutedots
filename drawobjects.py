@@ -8,8 +8,9 @@ def drawWall(width, height, hdivs, vdivs):
   hdiv = float(width) / float(hdivs)
   vdiv = float(height) / float(vdivs)
   glColor(1., 1., 1., .2)
+  glLineWidth(2)
   glBegin(GL_LINES)
-  glNormal3f(0.0, 0.0, -1.0)
+  glNormal3f(0.0, 0.0, 1.0)
   # draw vertical lines
   for i in range(hdivs+1):
       x = -width/2. + i*hdiv
@@ -28,7 +29,7 @@ def drawWall(width, height, hdivs, vdivs):
 
 def drawFloor():
     glLineWidth(1)
-    glColor4fv([0.03, 0.05, 0.15,1.0])
+    glColor4fv([0.0, 0.04, 0.12,1.0])
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, (0.1,0.1,0.1,1.0))
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, (0.0,0.0,0.0,1.0))
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0)
@@ -59,7 +60,7 @@ def drawChairs():
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, (0.2,0.2,0.2,1.0))
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 80.0)
     glPushMatrix()
-    glColor4f(0.08, 0.08, 0.08, 1.0)
+    glColor4f(0.06, 0.06, 0.06, 1.0)
     glTranslatef(-700, 0, 225)
     drawSolidCube(450)
     glTranslatef(1400, 0, 0)

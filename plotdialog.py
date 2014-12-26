@@ -28,15 +28,14 @@ class PlotDialog(QtGui.QDialog):
 
         self.figure = pl.figure()
         self.canvas = PLCanvas(self.figure)
-#        self.toolbar = PLToolbar("hi",self)
-#        self.toolbar = PLToolbar(self.canvas, self)
+        self.toolbar = PLToolbar(self.canvas, self)
 
 
 
         # layout
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.canvas)
- #       layout.addWidget(self.toolbar)
+        layout.addWidget(self.toolbar)
         self.setLayout(layout)
 
     def display(self):

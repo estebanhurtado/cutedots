@@ -317,14 +317,14 @@ class TrajData(object):
 
     def checkContinuity(self):
         "Checks all trajs have same length and starting frame"
-        if self.empty():
+        if self.empty:
             return True
         first = self.trajs[0]
         numFrames = first.numFrames
         beginFrame = first.beginFrame
         for traj in self.trajs[1:]:
             if numFrames != traj.numFrames or beginFrame != traj.beginFrame:
-                return false
+                return False
         return True
 
     class ContinuityError(Exception):

@@ -30,7 +30,8 @@ import os
 import sys
 import time
 import traceback
-import stats
+import rstats
+import errors
 from plotdialog import DataPlot
 
 about_text = """
@@ -365,13 +366,24 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         act.triggered.connect(handler)
         return act
 
-    def mkMenu(self, menubar, name, actions):
+    def mkMenu(self, menubar, name, elements):
         menu = menubar.addMenu(name)
-        for action in actions:
-            if action is None:
+        for element in elements:
+            if element is None:
+                menu.addSeparator()
+            elif isinstance(element, QtGui.QMenu):
+                menu.addMenu(element)
+            else:
+                menu.addAction(element)
+
+    def subMenu(self, name, elements):
+        menu = QtGui.QMenu(name)
+        for element in elements:
+            if element is None:
                 menu.addSeparator()
             else:
-                menu.addAction(action)
+                menu.addAction(element)
+        return menu
 
     def mkProgress(self, task_descript, total=100, cancelbtn=""):
         progress = QtGui.QProgressDialog(
@@ -457,11 +469,16 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             'Sort trajectories by X coordinate',
             'Improves traject. traversal order for labeling',
             self.slowSort)
-        # Analysis
+        # Plot
+        ## Trajectories
         plotContAction = self.mkAction(
             'Plot continuity',
             'Plot frame span of each trajectory',
             self.plotContinuity)
+        lengthHistAction = self.mkAction(
+            'Plot histogram of trajectory lengths', '',
+            self.plotLengthHistogram)
+        ## Motion
         plotEnergyAction = self.mkAction(
             'Plot energy',
             'Make global energy plot',
@@ -470,13 +487,19 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             'Plot speed',
             'Plots speed for each axis.',
             self.plotSpeed)
-        lengthHistAction = self.mkAction(
-            'Plot histogram of trajectory lengths', '',
-            self.plotLengthHistogram)
-        pcaAction = self.mkAction(
-            'Principal component analysis',
-            'Analize principal axes of variance',
-            self.pca)
+        ## PCA
+        pcaBiplotAction = self.mkAction(
+            'Biplot',
+            'Project in first two axes of variance',
+            self.pcaBiplot)
+        pcaScreeAction = self.mkAction(
+            'Scree plot',
+            'Show eigenvalues',
+            self.pcaScree)
+        pca3dPlotAction = self.mkAction(
+            '3D plot of first variance axes',
+            'Plot observations projected on first three axes',
+            self.pca3d)
         xcorrAction = self.mkAction(
             'Cross-correlation',
             'Produce cross-correlation plot for files in a folder',
@@ -498,10 +521,11 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
                      cutRightAction, cutLeftAction, None,
                      removeUnassignedAction, None,
                      sortAction])
-        self.mkMenu(menubar, '&Analysis',
-                    [plotContAction, plotEnergyAction, plotSpeedAction,
-                     lengthHistAction, None,
-                     pcaAction, xcorrAction])
+        self.mkMenu(menubar, '&Plot', [
+            self.subMenu("Trajectory lengths", [plotContAction, lengthHistAction]),
+            self.subMenu("Motion", [plotEnergyAction, plotSpeedAction]),
+            self.subMenu("Principal component analysis",
+                         [pcaScreeAction, pcaBiplotAction, pca3dPlotAction])])
         self.mkMenu(menubar, '&Help', [aboutAction])
 
     # Actions
@@ -656,15 +680,12 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     @warnIfNoDataLoaded
     def plotContinuity(self):
         self.dataPlot.plotContinuity(self.data)
-
     @warnIfNoDataLoaded
     def plotEnergy(self):
         analysis.plotEnergy(self.data)
-
     @warnIfNoDataLoaded
     def plotSpeed(self):
         analysis.plotSpeed(self.data)
-
     @warnIfNoDataLoaded
     def plotLengthHistogram(self):
         analysis.plotLengthHistAll(self.data)
@@ -674,9 +695,14 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         pass
 
     @warnIfNoDataLoaded
-    def pca(self):
-        print self.data
-        stats.pca(self.data)
+    def pcaScree(self):
+        rstats.pcaScreePlot(self.data)
+    @warnIfNoDataLoaded
+    def pcaBiplot(self):
+        rstats.pcaBiplot(self.data)
+    @warnIfNoDataLoaded
+    def pca3d(self):
+        rstats.pca3dPlot(self.data)
 
     @warnIfNoDataLoaded
     @updateStatus
@@ -686,12 +712,12 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         progress.close()
         progress.destroy()
         del progress
-
     @warnIfNoDataLoaded
     @updateStatus
     def fillAllGaps(self):
         progress = self.mkProgress("Filling all gaps...")
-        modelops.fillGaps(self.data, self.data.numFrames / self.data.framerate, 0.2, progress)
+        modelops.fillGaps(self.data, self.data.numFrames / self.data.framerate,
+                          0.2, progress)
         progress.close()
         progress.destroy()
         del progress
@@ -774,11 +800,15 @@ def main():
     cd = CuteDotsMainWindow()
 
     def excepthook(extype, exval, tb):
-#        traceback.print_tb(tb)
-        ex = traceback.format_exception(extype, exval, tb, 10)
+        message = str(exval)
+        if isinstance(exval, errors.Warning):
+            QtGui.QMessageBox.warning(cd, "Warning", message)
+        else:
+            ex = traceback.format_exception(extype, exval, tb, 10)
+            message = "Unknown error:\n\n" + message + \
+                      "\n\n" + "Technical details:\n\n" + ''.join(ex)
+            QtGui.QMessageBox.critical(cd, "Error", message)
 
-        message = "An error has occured. Technical details:\n\n" + ''.join(ex)
-        QtGui.QMessageBox.critical(cd, "Error", message)
     sys.excepthook = excepthook
 
     cd.show()
