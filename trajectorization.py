@@ -24,15 +24,19 @@ class Trajectorizer:
         self.trajs = []
         self.distanceThreshold = 10
 
-    def trajectorize(self):
+    def match(self, maxGap=3, minGap=0):
+        for i in range(minGap, maxGap+1):
+            metric = metricEuclidean(0)
+            self.matchAdjacentTrajs(metric)
+            metric = metricEuclideanPredict(0)
+            self.matchAdjacentTrajs(metric)
+
+    def trajectorize(self, maxGap=3):
         print("Trajectorization")
         print("- Distance based trajectorization...")
         self.distanceTraj()
         print("- Matching adjacent trajectories...")
-        metric = metricEuclidean(0)
-        self.matchAdjacentTrajs(metric)
-        metric = metricEuclideanPredict(0)
-        self.matchAdjacentTrajs(metric)
+        self.match(maxGap)
         print("Done")
 
     def noTraj(self):
@@ -111,6 +115,31 @@ class Trajectorizer:
             self.progress.setValue(100)
 
 
+    def fill(self, a, b):
+        gap = b.beginFrame - a.endFrame
+        fromPts = a.pointData[-10:]
+        toPts = b.pointData[:10]
+        fromLen = len(fromPts)
+        toLen = len(toPts)
+        fromTime = range(fromLen)
+        toTime = range(fromLen+gap, fromLen+gap+toLen)
+        gapTime = range(fromLen, fromLen+gap)
+        time = fromTime + toTime
+        trainData = fromPts + toPts
+        x = [p[0] for p in trainData]
+        y = [p[1] for p in trainData]
+        z = [p[2] for p in trainData]
+        order = 2
+        if len(time) <= 2:
+            order = 1
+        fitx = np.polyfit(time, x, order)
+        fity = np.polyfit(time, y, order)
+        fitz = np.polyfit(time, z, order)
+        gapx = np.polyval(fitx, gapTime)
+        gapy = np.polyval(fity, gapTime)
+        gapz = np.polyval(fitz, gapTime)
+        return [np.array([gapx[fr], gapy[fr]. gapz[fr]]) for fr in range(gap)]
+
     def matchAdjacentTrajs(self, metric, gap=0):
         print("Matching adjacent trajectories")
 
@@ -153,6 +182,11 @@ class Trajectorizer:
             elif b.beginFrame - a.endFrame != gap:
                 print("Error. Tried to join trajs that are not adjacent.")
             else:
+                if gap > 0:
+                    a.pointData.extend(self.fill(a,b))
+                elif gap < 0:
+                    b.pointData = b.pointData[-gap:]
+
                 a.pointData.extend(b.pointData)
                 self.trajs.remove(b)
 
@@ -160,7 +194,8 @@ class Trajectorizer:
                 n = N - len(adj)
                 self.progress.setValue( int(100.0*n/N) )
 
-        self.progress.setValue(100)
+        if not (self.progress is None):
+            self.progress.setValue(100)
 
     def findAdjacentTrajs(self, gap, metric):
         if not (self.progress is None):
@@ -182,6 +217,7 @@ class Trajectorizer:
                 i += 1
                 if not (self.progress is None) and (i % 10 == 0):
                     self.progress.setValue( int(100.0*i/NxN) )
-            
-        self.progress.setValue(100)
+        
+        if not (self.progress is None):
+            self.progress.setValue(100)
         return adjacent

@@ -431,6 +431,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             'Save and exit program',
             self.close, 'Ctrl+Q')
         # Operations
+        ## Op utility
         guessAction = self.mkAction(
             'Guess side and subject',
             'Label side and subject based on horizontal quadrant',
@@ -443,6 +444,15 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             'Swap subjects',
             'Exchange subjects 1 and 2',
             self.swap)
+        sortAction = self.mkAction(
+            'Sort trajectories by X coordinate',
+            'Improves traject. traversal order for labeling',
+            self.slowSort)
+        ## Op fixes
+        matchTrajsAction = self.mkAction(
+            'Match trajectories',
+            'Apply further trajectory matching',
+            self.matchTrajectories, 'Ctrl+M')
         averageTrajsAction = self.mkAction(
             'Average same name trajectories',
             'Makes sure only one point exists at each frame for each trajectory name',
@@ -455,20 +465,23 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             'Fill all gaps in trajectories',
             'Interpolates all missing frames in trajectories.',
             self.fillAllGaps)
+        ## Op remove trajectories
+        removeUnassignedAction = self.mkAction(
+            'Remove unassigned trajectories.',
+            'Removes trajectories that are not completeley assigned.',
+            self.removeUnassigned)
+        removeShortAction = self.mkAction(
+            'Remove short trajectories',
+            'Removes trajectories shorter than specified threshold',
+            self.removeShort)
+        ## Op cut frames
         cutRightAction = self.mkAction(
             'Cut from this frame', '',
             self.cutRight)
         cutLeftAction = self.mkAction(
             'Cut before this frame', '',
             self.cutLeft)
-        removeUnassignedAction = self.mkAction(
-            'Remove unassigned trajectories.',
-            'Removes trajectories that are not completeley assigned.',
-            self.removeUnassigned)
-        sortAction = self.mkAction(
-            'Sort trajectories by X coordinate',
-            'Improves traject. traversal order for labeling',
-            self.slowSort)
+
         # Plot
         ## Trajectories
         plotContAction = self.mkAction(
@@ -489,17 +502,29 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             self.plotSpeed)
         ## PCA
         pcaBiplotAction = self.mkAction(
-            'Biplot',
+            'Biplot (subjects as one)',
             'Project in first two axes of variance',
             self.pcaBiplot)
         pcaScreeAction = self.mkAction(
-            'Scree plot',
+            'Scree plot (subjects as one)',
             'Show eigenvalues',
             self.pcaScree)
         pca3dPlotAction = self.mkAction(
-            '3D plot of first variance axes',
+            '3D plot (separate PCA fits for subjects)',
             'Plot observations projected on first three axes',
-            self.pca3d)
+            self.pca3d, 'Ctrl+P')
+        pca3dPlotTogetherAction = self.mkAction(
+            '3D plot (same PCA fit for subjects)',
+            'Plot observations projected on first three axes',
+            self.pca3dTogether, 'Ctrl+P')
+        pcaDistancePlotAction = self.mkAction(
+            'PCA space distance between subjects vs time',
+            'Between-subject euclidean distance of PCA scores vs time',
+            self.pcaDistancePlot)
+        pcaLoadingsAction = self.mkAction(
+            'PCA loadings (two subjects in separate variables)',
+            'PCA loadings',
+            self.pcaLoadings)
         xcorrAction = self.mkAction(
             'Cross-correlation',
             'Produce cross-correlation plot for files in a folder',
@@ -516,16 +541,18 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
                      saveAction, saveAsAction, saveSeqAction, None,
                      exitAction, exitNoSaveAction])
         self.mkMenu(menubar, '&Operations',
-                    [rotateAction, swapAction, guessAction, None,
-                     averageTrajsAction, fillSmallGapsAction, fillAllGapsAction, None,
-                     cutRightAction, cutLeftAction, None,
-                     removeUnassignedAction, None,
-                     sortAction])
+                    [rotateAction, swapAction, guessAction, sortAction, None,
+                     matchTrajsAction, averageTrajsAction, fillSmallGapsAction,
+                     fillAllGapsAction, None,
+                     removeUnassignedAction, removeShortAction, None,
+                     cutRightAction, cutLeftAction])
         self.mkMenu(menubar, '&Plot', [
             self.subMenu("Trajectory lengths", [plotContAction, lengthHistAction]),
             self.subMenu("Motion", [plotEnergyAction, plotSpeedAction]),
             self.subMenu("Principal component analysis",
-                         [pcaScreeAction, pcaBiplotAction, pca3dPlotAction])])
+                         [pcaScreeAction, pcaBiplotAction, pca3dPlotAction,
+                          pca3dPlotTogetherAction, pcaDistancePlotAction,
+                          pcaLoadingsAction])])
         self.mkMenu(menubar, '&Help', [aboutAction])
 
     # Actions
@@ -641,6 +668,25 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
 
     @warnIfNoDataLoaded
     @updateDisplay
+    def matchTrajectories(self):
+        threshold, ok = QtGui.QInputDialog.getInteger(
+            self, "Match trajectories", "Distance threshold (mm)", 20, 0, 1000)
+        if not ok:
+            return
+        maxGap, ok = QtGui.QInputDialog.getInteger(
+            self, "Match trajectories", "Max. frame gap", 5, -100, 1000)
+        if not ok:
+            return
+        minGap, ok = QtGui.QInputDialog.getInteger(
+            self, "Match trajectories", "Min. frame gap", 0, -100, 1000)
+        if not ok:
+            return
+
+        progress = self.mkProgress("Matching trajectories")
+        modelops.matchTrajectories(self.data, threshold, maxGap, progress)
+
+    @warnIfNoDataLoaded
+    @updateDisplay
     def rotate(self):
         progress = self.mkProgress("Rotating 90 degrees...")
         modelops.rotate90Deg(self.data, progress)
@@ -703,6 +749,15 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     @warnIfNoDataLoaded
     def pca3d(self):
         rstats.pca3dPlot(self.data)
+    @warnIfNoDataLoaded
+    def pca3dTogether(self):
+        rstats.pca3dPlotTogether(self.data)
+    @warnIfNoDataLoaded
+    def pcaDistancePlot(self):
+        rstats.pcaDistancePlot(self.data)
+    @warnIfNoDataLoaded
+    def pcaLoadings(self):
+        rstats.pcaLoadings(self.data)
 
     @warnIfNoDataLoaded
     @updateStatus
@@ -738,6 +793,15 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     @updateStatus
     def removeUnassigned(self):
         self.model.deleteUnassigned()
+
+    @warnIfNoDataLoaded
+    @updateStatus
+    def removeShort(self):
+        minLength, ok = QtGui.QInputDialog.getInteger(
+            self, "Remove short trajectories", "Minimum length (frames)", 10, 0)
+        if not ok:
+            return
+        self.model.deleteShort(minLength)
 
     # End actions #
 

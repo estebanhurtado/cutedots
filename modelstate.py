@@ -200,6 +200,9 @@ class ModelState:
         if len(currentTrajs) > 0:
             byEndFrame = sorted(currentTrajs, key=lambda x: x.endFrame)
             self.frame = byEndFrame[0].endFrame
+            if self.frame >= self.data.numFrames:
+                self.frame = max(0, self.data.numFrames-1)
+            self.traj = self.data.trajs.index(byEndFrame[0])
 
     def deleteCurrent(self):
         if self.data is None:
@@ -226,6 +229,9 @@ class ModelState:
             for traj in deleteList:
                 self.data.trajs.remove(traj)
             self.data.changed = True
+
+    def deleteShort(self, minLength):
+        self.data.trajs = [t for t in self.data.trajs if t.numFrames >= minLength]
 
     def cutRight(self):
         if self.frame > 0:

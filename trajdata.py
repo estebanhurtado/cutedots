@@ -19,6 +19,7 @@ import scipy as sp
 import scipy.spatial.distance as spDistance
 from sys import float_info
 import os
+import errors
 
 def log(msg, lf=True):
     "Log a message"
@@ -100,18 +101,37 @@ class Traj:
     nameCounter = 0
 
     @property
-    def endFrame(self):
-        return self.beginFrame + len(self.pointData)
-
+    def endFrame(self): return self.beginFrame + len(self.pointData)
     @property
-    def numFrames(self):
-        return len(self.pointData)
+    def numFrames(self): return len(self.pointData)
+    @property
+    def isHead(self): return self.part == 'Hd'
+
 
     @property
     def newCounter(self):
         c = Traj.nameCounter
         Traj.nameCounter += 1
         return c
+
+    @property
+    def subject(self):
+        try: return int(self.name[3])
+        except: return 0
+
+    @property
+    def part(self):
+        try: return self.name[:2]
+        except: return None
+
+    @property
+    def side(self):
+        try:
+            if self.part != "Hd":
+                return self.name[2]
+        except:
+            pass
+        return None
 
     def __init__(self, beginFrame, name=None):
         self.name = ("tr_%d" % self.newCounter) if name is None else name
@@ -147,9 +167,9 @@ class Traj:
     def split(self, framenum):
         splitIdx = framenum - self.beginFrame
         t1 = Traj(self.beginFrame, self.name)
-        t1.pointData = self.pointData[:split_idx]
+        t1.pointData = self.pointData[:splitIdx]
         t2 = Traj(framenum, self.name)
-        t2.pointData = self.pointData[split_idx:]
+        t2.pointData = self.pointData[splitIdx:]
         return (t1, t2)
 
     def trimRight(self, framenum):
@@ -315,27 +335,53 @@ class TrajData(object):
             t.beginFrame -= cutFrame
         self.changed = True
 
-    def checkContinuity(self):
-        "Checks all trajs have same length and starting frame"
-        if self.empty:
-            return True
-        first = self.trajs[0]
-        numFrames = first.numFrames
-        beginFrame = first.beginFrame
-        for traj in self.trajs[1:]:
-            if numFrames != traj.numFrames or beginFrame != traj.beginFrame:
-                return False
-        return True
-
-    class ContinuityError(Exception):
+    class ContinuityError(errors.Warning):
         def __str__(self):
             return "Could not extract continuous data. " + \
                    "Please check that all trajectories " + \
                    "are the same length and start at the same frame"
 
+    def checkContinuity(self):
+        "Check all trajs have same length and starting frame"
+
+        if not self.empty:
+            first = self.trajs[0]
+            numFrames = first.numFrames
+            beginFrame = first.beginFrame
+            for traj in self.trajs[1:]:
+                difNum = numFrames != traj.numFrames
+                difBegin = beginFrame != traj.beginFrame
+                if not traj.isHead and (difNum or difBegin):
+                    raise TrajData.ContinuityError()
 
     def toArray(self):
-        if not self.checkContinuity():
-            raise TrajData.ContinuityError()
+        self.checkContinuity()
         return np.array([t.pointData for t in self.trajs])
-            
+
+    def posBySubj(self):
+        self.checkContinuity()
+        trajs = sorted(self.trajs, key=lambda t: t.name)
+
+        alldata = []
+        allnames = []
+        
+        for s in [1,2]:
+            data = [t for t in trajs if t.subject == s]
+            head = [t.pointData for t in data if t.part == 'Hd']
+            rest = [t for t in data if t.part != 'Hd']
+            restNum = np.array([t.pointData for t in rest])
+            if len(head) > 0:
+#                print(head)
+                headNum = np.mean(np.array(head), 0)
+                allnames.append(['Hd'] + [t.part + t.side for t in rest])
+                headShape = headNum.shape
+                headNum = headNum.reshape((1,headShape[0], headShape[1]))
+                alldata.append(np.concatenate((headNum, restNum),0))
+            else:
+                allnames.append([t.part + t.size for t in rest])
+                alldata.append(restNum)
+
+        return alldata, allnames
+
+    def labels(self):
+        return [t.name for t in self.trajs]

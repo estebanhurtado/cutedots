@@ -13,6 +13,7 @@
 
 from trajdata import Traj
 import numpy as np
+from trajectorization import Trajectorizer
 
 class ProcessingException(Exception):
     def __init__(self, msg):
@@ -20,6 +21,12 @@ class ProcessingException(Exception):
     def __str__(self):
         return str(self.msg)
 
+
+def matchTrajectories(data, threshold, maxGap, progress=None):
+    trz = Trajectorizer(None, progress)
+    trz.trajs = data.trajs
+    trz.distanceThreshold = threshold
+    trz.match(maxGap)
 
 def guessSideAndSubject(data):
     for t in data.trajs:
