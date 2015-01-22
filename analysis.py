@@ -14,26 +14,7 @@
 import pylab as pl
 import numpy as np
 import scipy as sp
-
-
-def plotContinuity(data):
-    # Organize curves by label
-    trajectories = dict()
-    for traj in data.trajs:
-        trajectories.setdefault(traj.name, []).append(traj)
-    # Plot
-    y = 0
-    ticksy = []
-    ticksn = []
-    for name, trajs in trajectories.items():
-        y -= 10
-        ticksy.append(y)
-        ticksn.append(name)
-        for t in trajs:
-            t0, t1 = t.beginFrame / data.framerate, (t.endFrame-1) / data.framerate
-            pl.plot([t0, t1], [y, y])
-    pl.yticks(ticksy, ticksn)
-    pl.show()
+import numpy.ma as ma
 
 def energy(trajectories):
     "Returns aggregated energy signal for all markers"
@@ -49,6 +30,24 @@ def energy(trajectories):
     return energy
 
 
+def trajsToMaskedPosition(trajs):
+    numFrames = max([t.endFrame for t in trajs])
+    position = ma.zeros((len(trajs), numFrames, 3))
+    i = 0
+    for t in data.trajs:
+        position.mask[...] = True
+        position[i, t.beginFrame:t.endFrame, :] = t.pointData
+        position.mask[i, t.beginFrame:t.endFrame, :] = False
+        i+=1
+    return position
+
+
+def averagePos(data):
+    "Returns modulus of average position"
+
+    pos = trajsToMaskedPosition(data)
+    return ma.sum(ma.mean(pos,0)**2, 1)**0.5
+
 def trajsBySubj(trajectories):
     # classify trajectories by subject
     trajs = {}
@@ -56,22 +55,6 @@ def trajsBySubj(trajectories):
         trajs.setdefault(t.name[3], []).append(t)
     return trajs
 
-def plotSubjectFunc(data, func, subplot=True):
-    "Makes a plot of a time function by subject"
-
-    trajs = trajsBySubj(data.trajs)
-    numSubjs = len(trajs)
-    subjNum = 1
-
-    for subject, trajList in trajs.items():
-        f = func(trajList)
-        t = np.arange(len(f)) / data.framerate
-        if subplot:
-            pl.subplot(numSubjs, 1, subjNum)
-            pl.ylabel("Subject %s" % subject)
-        subjNum += 1
-        pl.plot(t, f)
- 
 
 def plotEnergy(data):
     plotSubjectFunc(data, energy)
@@ -119,10 +102,3 @@ def projectedSpeed(trajectories, direction):
             speed[t.beginFrame:t.endFrame-1] += projSpeed  # store energy
     return speed
 
-def plotLengthHistogram(data):
-    pl.hist([t.numFrames / data.framerate for t in data.trajs])
-    pl.xlabel('length (secs)')
-
-def plotLengthHistAll(data):
-    plotLengthHistogram(data)
-    pl.show()

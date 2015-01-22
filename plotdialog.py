@@ -19,6 +19,8 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as PLCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as PLToolbar
 import matplotlib as mpl
 import modelstate
+import analysis
+import numpy as np
 
 mpl.rcParams['backend.qt4'] = 'PySide'
 
@@ -29,7 +31,6 @@ class PlotDialog(QtGui.QDialog):
         self.figure = pl.figure()
         self.canvas = PLCanvas(self.figure)
         self.toolbar = PLToolbar(self.canvas, self)
-
 
 
         # layout
@@ -47,12 +48,48 @@ class DataPlot(PlotDialog):
     def __init__(self, parent=None):
         super(DataPlot, self).__init__(parent)
 
-    def makeAxis(self):
+    def clear(self):
         self.figure.clear()
-        ax = self.figure.add_subplot(111)
-        return ax
 
-    def plotContinuity(self, data):
+    def subplot(self, rows=1, cols=1, num=1):
+        return self.figure.add_subplot(rows, cols, num)
+
+    def warnIfNoDataLoaded(method):
+        "Decorator that throws a warning if no data is already loaded."
+        def deco(self, *args, **kargs):
+            if self.parent().data is None:
+                QtGui.QMessageBox.warning(self.parent(), 'Warning', 'No data loaded yet.')
+                return
+            method(self, *args, **kargs)
+        return deco
+
+
+    def plotSubjectFunc(self, func, subplot=True):
+        "Makes a plot of a time function by subject"
+
+        data = self.parent().data
+        trajs = analysis.trajsBySubj(data.trajs)
+        numSubjs = len(trajs)
+        subjNum = 1
+        self.clear()
+        if not subplot:
+            ax = self.subplot()
+
+        for subject, trajList in trajs.items():
+            f = func(trajList)
+            t = np.arange(len(f)) / data.framerate
+            if subplot:
+                ax = self.subplot(numSubjs, 1, subjNum)
+                ax.set_ylabel("Subject %s" % subject)
+                subjNum += 1
+                ax.plot(t, f)
+
+
+
+    @warnIfNoDataLoaded
+    def plotContinuity(self):
+        data = self.parent().data
+
         # Organize curves by label
         trajectories = dict()
         for traj in data.trajs:
@@ -61,7 +98,8 @@ class DataPlot(PlotDialog):
         y = 0
         ticksy = []
         ticksn = []
-        ax = self.makeAxis()
+        self.clear()
+        ax = self.subplot()
         colors = ['b','r']
         trajectories = trajectories.items()
 
@@ -93,3 +131,24 @@ class DataPlot(PlotDialog):
         ax.set_yticklabels(ticksn)
         self.display()
 
+
+    @warnIfNoDataLoaded
+    def plotLengthHistogram(self):
+        data = self.parent().data
+        self.clear()
+        ax = self.subplot()
+        ax.hist([t.numFrames / data.framerate for t in data.trajs])
+        ax.set_xlabel('length (secs)')
+        self.display()
+
+    @warnIfNoDataLoaded
+    def plotPositionSpectrogram(self):
+        self.clear()
+#        ax = self.subplot(2,
+        self.plotSubjectFunc(analysis.averagePos)
+        self.display()
+
+    @warnIfNoDataLoaded
+    def plotEnergyVsTime(self):
+        self.plotSubjectFunc(analysis.energy)
+        self.display()
