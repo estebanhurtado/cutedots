@@ -105,8 +105,10 @@ class CuteDotsActions(QtCore.QObject):
         positionMenu = menu.addMenu('Position')
         positionMenu.addAction('Spectrogram',
                                self.dataPlot.plotPositionSpectrogram)
-        positionMenu.addAction('PCA',
-                               self.positionPca)
+        positionMenu.addAction('PCA scree plot',
+                               self.positionScreePlot)
+        positionMenu.addAction('PCA 3D plot',
+                               self.positionPca3d)
 
         speedMenu = menu.addMenu('Speed')
 
@@ -349,5 +351,9 @@ class CuteDotsActions(QtCore.QObject):
         rstats.pcaLoadings(self.parent().data)
 
     @warnIfNoDataLoaded
-    def positionPca(self):
+    def positionScreePlot(self):
         pystats.screePlot(self.parent().data, self.dataPlot)
+
+    @warnIfNoDataLoaded
+    def positionPca3d(self):
+        pystats.int3dPlot(self.parent().data, self.dataPlot)
