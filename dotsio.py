@@ -17,6 +17,7 @@ import numpy as np
 import traceback
 import trajectorization as tz
 import modelops as mops
+import sys
 
 # C3D
 #####
@@ -35,7 +36,8 @@ def rawDataFromC3D(c3d, progress):
                 return
         try:
             rd.frames.append( RawFrame(c3d.data[i,:,:]) )
-        except Exception, e:
+        except:
+            e = sys.exc_info()[1]
             print('Error appending frame %d of %d' % (i, numFrames))
             print(str(e))
             traceback.print_exc()
@@ -206,7 +208,7 @@ def trajDataFromH5(filename, progress=None):
     totalTrajs = len(list(group))        # Find number of trajectories
     for dsetName in list(group):
         dset = group[dsetName]
-        tr = Traj(int(dset.attrs['begin_frame']), str(dset.attrs['name']))
+        tr = Traj(int(dset.attrs['begin_frame']), str(dset.attrs['name'].decode('ascii')))
         tr.pointData = [np.array(p) for p in  dset.value.tolist()]
         td.trajs.append(tr)
         if progress is not None:

@@ -18,7 +18,7 @@ import preprocess
 import analysis
 from plotdialog import DataPlot
 import modelops
-
+import pystats
 
 class CuteDotsActions(QtCore.QObject):
     def __init__(self, parent):
@@ -105,6 +105,8 @@ class CuteDotsActions(QtCore.QObject):
         positionMenu = menu.addMenu('Position')
         positionMenu.addAction('Spectrogram',
                                self.dataPlot.plotPositionSpectrogram)
+        positionMenu.addAction('PCA',
+                               self.positionPca)
 
         speedMenu = menu.addMenu('Speed')
 
@@ -189,6 +191,8 @@ class CuteDotsActions(QtCore.QObject):
             self.parent().updateStatus()
         return deco
 
+    @updateDisplay
+    @updateStatus
     def openDataFile(self):
         fn, x = QtGui.QFileDialog.getOpenFileName\
                 (None, 'Open a CuteDots motion data file')
@@ -196,6 +200,8 @@ class CuteDotsActions(QtCore.QObject):
             return
         self.parent().loadDataFile(fn)
 
+    @updateDisplay
+    @updateStatus
     def importC3D(self):
         fn,x = QtGui.QFileDialog.getOpenFileName(None, 'Import a C3D data file')
         if fn == '':
@@ -204,6 +210,8 @@ class CuteDotsActions(QtCore.QObject):
         qtdFn = preprocess.ppC3D(fn, progress)
         self.parent().loadDataFile(qtdFn)
 
+    @updateDisplay
+    @updateStatus
     def importCSV(self):
         fn,x = QtGui.QFileDialog.getOpenFileName(None, 'Import a CSV data file')
         if fn == '':
@@ -212,6 +220,8 @@ class CuteDotsActions(QtCore.QObject):
         qtdFn = preprocess.ppCSV(fn, progress)
         self.parent().loadDataFile(qtdFn)
 
+    @updateDisplay
+    @updateStatus
     def importCSV2(self):
         fn,x = QtGui.QFileDialog.getOpenFileName(None, 'Import a CSV2 data file')
         if fn == '':
@@ -338,3 +348,6 @@ class CuteDotsActions(QtCore.QObject):
     def pcaLoadings(self):
         rstats.pcaLoadings(self.parent().data)
 
+    @warnIfNoDataLoaded
+    def positionPca(self):
+        pystats.screePlot(self.parent().data, self.dataPlot)

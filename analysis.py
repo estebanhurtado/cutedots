@@ -14,9 +14,10 @@
 import pylab as pl
 import numpy as np
 import scipy as sp
-<<<<<<< Updated upstream
 import numpy.ma as ma
-=======
+
+def separateComponents(d):
+    return np.concatenate(d,1)
 
 def preprocessPosition(trajdata, flattenFunc=separateComponents, xyzNames=True):
     data, names = trajdata.posBySubj()
@@ -51,7 +52,7 @@ def plotContinuity(data):
             pl.plot([t0, t1], [y, y])
     pl.yticks(ticksy, ticksn)
     pl.show()
->>>>>>> Stashed changes
+
 
 def energy(trajectories):
     "Returns aggregated energy signal for all markers"

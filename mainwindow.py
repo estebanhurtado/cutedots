@@ -20,7 +20,7 @@ from PySide import QtGui, QtOpenGL, QtCore
 from PySide.QtCore import Qt
 import dotsio
 import modelops
-import rstats
+#import rstats
 import actions
 from widgets import *
 
