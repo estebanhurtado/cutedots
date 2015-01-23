@@ -14,7 +14,44 @@
 import pylab as pl
 import numpy as np
 import scipy as sp
+<<<<<<< Updated upstream
 import numpy.ma as ma
+=======
+
+def preprocessPosition(trajdata, flattenFunc=separateComponents, xyzNames=True):
+    data, names = trajdata.posBySubj()
+    if names[0] != names[1]:
+        print(names[0])
+        print(names[1])
+        raise RPlotError("Cannot preprocess positions. The two subjects " + \
+                         "don't have the same part labels.")
+    data = [flattenFunc(d) for d in data]
+    if xyzNames:
+        newNames = [n + d for n in names[0] for d in ['X', 'Y', 'Z']]
+    else:
+        newNames = names[0]
+    return data, newNames
+
+
+def plotContinuity(data):
+    # Organize curves by label
+    trajectories = dict()
+    for traj in data.trajs:
+        trajectories.setdefault(traj.name, []).append(traj)
+    # Plot
+    y = 0
+    ticksy = []
+    ticksn = []
+    for name, trajs in trajectories.items():
+        y -= 10
+        ticksy.append(y)
+        ticksn.append(name)
+        for t in trajs:
+            t0, t1 = t.beginFrame / data.framerate, (t.endFrame-1) / data.framerate
+            pl.plot([t0, t1], [y, y])
+    pl.yticks(ticksy, ticksn)
+    pl.show()
+>>>>>>> Stashed changes
 
 def energy(trajectories):
     "Returns aggregated energy signal for all markers"
