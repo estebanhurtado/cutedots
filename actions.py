@@ -19,11 +19,20 @@ import analysis
 from plotdialog import DataPlot
 import modelops
 import pystats
+import plots
 
 class CuteDotsActions(QtCore.QObject):
     def __init__(self, parent):
         QtCore.QObject.__init__(self, parent)
-        self.dataPlot = DataPlot(self.parent())
+#        self.dataPlot = DataPlot(self.parent())
+
+
+    @property
+    def dataPlot(self):
+        return self.newDataPlot()
+
+    def newDataPlot(self):
+        return DataPlot(self.parent())
 
     def makeMenus(self):
         self.fileMenu()
@@ -104,58 +113,24 @@ class CuteDotsActions(QtCore.QObject):
 
         positionMenu = menu.addMenu('Position')
         positionMenu.addAction('Spectrogram',
-                               self.dataPlot.plotPositionSpectrogram)
+                               self.positionSpectrogram)
         positionMenu.addAction('PCA scree plot',
                                self.positionScreePlot)
         positionMenu.addAction('PCA 3D plot',
                                self.positionPca3d)
 
         speedMenu = menu.addMenu('Speed')
+        speedMenu.addAction('PCA scree plot',
+                            self.speedScreePlot)
+        speedMenu.addAction('PCA 3D plot',
+                            self.speedPca3d)
+
 
         energyMenu = menu.addMenu('Energy')
         energyMenu.addAction('Energy vs Time',
                              self.dataPlot.plotEnergyVsTime)
 
 
-
-        # ## Motion
-        # plotEnergyAction = self.mkAction(
-        #     'Plot energy',
-        #     'Make global energy plot',
-        #     self.plotEnergy)
-        # plotSpeedAction = self.mkAction(
-        #     'Plot speed',
-        #     'Plots speed for each axis.',
-        #     self.plotSpeed)
-        # ## PCA
-        # pcaBiplotAction = self.mkAction(
-        #     'Biplot (subjects as one)',
-        #     'Project in first two axes of variance',
-        #     self.pcaBiplot)
-        # pcaScreeAction = self.mkAction(
-        #     'Scree plot (subjects as one)',
-        #     'Show eigenvalues',
-        #     self.pcaScree)
-        # pca3dPlotAction = self.mkAction(
-        #     '3D plot (separate PCA fits for subjects)',
-        #     'Plot observations projected on first three axes',
-        #     self.pca3d, 'Ctrl+P')
-        # pca3dPlotTogetherAction = self.mkAction(
-        #     '3D plot (same PCA fit for subjects)',
-        #     'Plot observations projected on first three axes',
-        #     self.pca3dTogether, 'Ctrl+P')
-        # pcaDistancePlotAction = self.mkAction(
-        #     'PCA space distance between subjects vs time',
-        #     'Between-subject euclidean distance of PCA scores vs time',
-        #     self.pcaDistancePlot)
-        # pcaLoadingsAction = self.mkAction(
-        #     'PCA loadings (two subjects in separate variables)',
-        #     'PCA loadings',
-        #     self.pcaLoadings)
-        # xcorrAction = self.mkAction(
-        #     'Cross-correlation',
-        #     'Produce cross-correlation plot for files in a folder',
-        #     self.plotCrossCorrelation)
 
     def helpMenu(self):
         bar = self.parent().menuBar()
@@ -312,48 +287,43 @@ class CuteDotsActions(QtCore.QObject):
     def cutLeft(self):
         self.parent().model.cutLeft()
 
+
+# PLOTS
+
     @warnIfNoDataLoaded
     def plotContinuity(self):
-        self.dataPlot.plotContinuity(self.parent().data)
+        plots.continuity(self.newDataPlot())
+
     @warnIfNoDataLoaded
     def plotLengthHistogram(self):
-        self.dataPlot.plotLengthHistogram(self.parent().data)
-
+        plots.lengthHistogram(self.newDataPlot())
 
     @warnIfNoDataLoaded
-    def plotEnergy(self):
-        analysis.plotEnergy(self.parent().data)
-    @warnIfNoDataLoaded
-    def plotSpeed(self):
-        analysis.plotSpeed(self.parent().data)
-
+    def positionSpectrogram(self):
+        plots.positionSpectrogram(self.newDataPlot())
 
     @warnIfNoDataLoaded
     def plotCrossCorrelation(self):
         pass
-    @warnIfNoDataLoaded
-    def pcaScree(self):
-        rstats.pcaScreePlot(self.parent().data)
-    @warnIfNoDataLoaded
-    def pcaBiplot(self):
-        rstats.pcaBiplot(self.parent().data)
-    @warnIfNoDataLoaded
-    def pca3d(self):
-        rstats.pca3dPlot(self.parent().data)
-    @warnIfNoDataLoaded
-    def pca3dTogether(self):
-        rstats.pca3dPlotTogether(self.parent().data)
-    @warnIfNoDataLoaded
-    def pcaDistancePlot(self):
-        rstats.pcaDistancePlot(self.parent().data)
-    @warnIfNoDataLoaded
-    def pcaLoadings(self):
-        rstats.pcaLoadings(self.parent().data)
 
     @warnIfNoDataLoaded
     def positionScreePlot(self):
-        pystats.screePlot(self.parent().data, self.dataPlot)
-
+        plots.scree(self.newDataPlot(),
+                    "Scree plot of marker position components")
     @warnIfNoDataLoaded
     def positionPca3d(self):
-        pystats.int3dPlot(self.parent().data, self.dataPlot)
+        plots.intPca3d(self.newDataPlot(),
+                         "PCA 3D plot of marker position components")
+
+    @warnIfNoDataLoaded
+    def speedScreePlot(self):
+        data = self.parent().data
+        plots.scree(self.newDataPlot(),
+                          "Scree plot of marker speed components",
+                          pystats.speedFunc(data.framerate))
+    @warnIfNoDataLoaded
+    def speedPca3d(self):
+        data = self.parent().data
+        plots.intPca3d(self.newDataPlot(),
+                          "PCA 3D plot of marker speed components",
+                          pystats.speedFunc(data.framerate))

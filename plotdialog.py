@@ -101,7 +101,7 @@ class DataPlot(PlotDialog):
         self.clear()
         ax = self.subplot()
         colors = ['b','r']
-        trajectories = trajectories.items()
+        trajectories = list(trajectories.items())
 
         def key(traj):
             try:
