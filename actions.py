@@ -107,19 +107,21 @@ class CuteDotsActions(QtCore.QObject):
 
         trajMenu = menu.addMenu('Trajectories')
         trajMenu.addAction('Continuity',
-                           self.dataPlot.plotContinuity)
+                           self.plotContinuity)
         trajMenu.addAction('Length histogram',
-                           self.dataPlot.plotLengthHistogram)
+                           self.plotLengthHistogram)
 
         positionMenu = menu.addMenu('Position')
-        positionMenu.addAction('Spectrogram',
-                               self.positionSpectrogram)
+        positionMenu.addAction('Spectrum density',
+                               self.positionFrequencySpectrum)
         positionMenu.addAction('PCA scree plot',
                                self.positionScreePlot)
         positionMenu.addAction('PCA 3D plot',
                                self.positionPca3d)
 
         speedMenu = menu.addMenu('Speed')
+        speedMenu.addAction('Spectrum density',
+                            self.speedFrequencySpectrum)        
         speedMenu.addAction('PCA scree plot',
                             self.speedScreePlot)
         speedMenu.addAction('PCA 3D plot',
@@ -128,7 +130,7 @@ class CuteDotsActions(QtCore.QObject):
 
         energyMenu = menu.addMenu('Energy')
         energyMenu.addAction('Energy vs Time',
-                             self.dataPlot.plotEnergyVsTime)
+                             self.plotEnergy)
 
 
 
@@ -298,32 +300,47 @@ class CuteDotsActions(QtCore.QObject):
     def plotLengthHistogram(self):
         plots.lengthHistogram(self.newDataPlot())
 
-    @warnIfNoDataLoaded
-    def positionSpectrogram(self):
-        plots.positionSpectrogram(self.newDataPlot())
+
+    # Position
 
     @warnIfNoDataLoaded
-    def plotCrossCorrelation(self):
-        pass
-
+    def positionFrequencySpectrum(self):
+        plots.positionSpectrum(
+            self.newDataPlot(),
+            "Spectrum density of marker position")
     @warnIfNoDataLoaded
     def positionScreePlot(self):
-        plots.scree(self.newDataPlot(),
-                    "Scree plot of marker position components")
+        plots.scree(
+            self.newDataPlot(),
+            "Scree plot of marker position components")
     @warnIfNoDataLoaded
     def positionPca3d(self):
-        plots.intPca3d(self.newDataPlot(),
-                         "PCA 3D plot of marker position components")
+        plots.intPca3d(
+            self.newDataPlot(),
+            "PCA 3D plot of marker position components")
 
+    # Speed
+
+    @warnIfNoDataLoaded
+    def speedFrequencySpectrum(self):
+        plots.speedSpectrum(
+            self.newDataPlot(),
+            "Spectrum density of marker speed")
     @warnIfNoDataLoaded
     def speedScreePlot(self):
         data = self.parent().data
-        plots.scree(self.newDataPlot(),
-                          "Scree plot of marker speed components",
-                          pystats.speedFunc(data.framerate))
+        plots.scree(
+            self.newDataPlot(),
+            "Scree plot of marker speed components",
+            pystats.speedFunc(data.framerate))
     @warnIfNoDataLoaded
     def speedPca3d(self):
         data = self.parent().data
-        plots.intPca3d(self.newDataPlot(),
-                          "PCA 3D plot of marker speed components",
-                          pystats.speedFunc(data.framerate))
+        plots.intPca3d(
+            self.newDataPlot(),
+            "PCA 3D plot of marker speed components",
+            pystats.speedFunc(data.framerate))
+
+    @warnIfNoDataLoaded
+    def plotEnergy(self):
+        plots.energyVsTime(self.newDataPlot())

@@ -95,5 +95,5 @@ except:
 
 print("Final number of curves:", len(data.curves))
 print("Writing output...", end=' ')
-pickle.dump(data, file(args.file.name, "wb"), 2)
+pickle.dump(data, open(args.file.name, "wb"), 2)
 print("[Ok]")

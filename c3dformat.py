@@ -101,7 +101,7 @@ class ParamData(BinStruct):
         storageDict["dims"] = []
         D = storageDict["numDims"]
         for d in range(D):
-            storageDict["dims"].append(struct.unpack("b",string[2+d])[0])
+            storageDict["dims"].append(struct.unpack("b",string[(2+d):(3+d)])[0])
         # Compute number of elements
         T = 1  # Zero dimensions means scalar ==> one element
         dims = storageDict["dims"]
@@ -175,7 +175,7 @@ class P3dFrame:
 
 class C3d:
     def __init__(self, filename):
-        fin = file(filename, 'rb')
+        fin = open(filename, 'rb')
         self.filename = filename
         self.data = None
         self.read(fin)
@@ -221,6 +221,8 @@ class C3d:
                     pass
         # Point labels
         self.pointLabels = []
+        print("Names", [x.name for x in self.paramRecords])
+        print("Groups", [x.groupID for x in self.paramRecords])
         labelsParam = [ x for x in self.paramRecords if x.name == "LABELS" and self.groups[x.groupID] == "POINT"][0]
         labelLen = labelsParam.dims[0]
         text = labelsParam.data

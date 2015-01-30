@@ -1,5 +1,6 @@
 import pylab as pl
 import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
 from mpl_toolkits.mplot3d import Axes3D
 from pystats import fitPca
 import analysis
@@ -79,6 +80,33 @@ def lengthHistogram(pd):
     ax.set_xlabel('length (secs)')
     pd.display()
 
+def frequencySpectrum(pd, title, transform=None):
+    trajdata = pd.parent().data
+    pointData = np.array([t.pointData for t in trajdata.trajs])
+    if not transform is None:
+        pointData = transform(pointData)
+    comps = np.concatenate(pointData, 1)
+    m = np.mean(comps, 1)
+    m -= np.mean(m)
+    F, freq = mlab.psd(m, NFFT=256, Fs=trajdata.framerate)
+    F = 10*np.log10(F)
+    pd.clear()
+    ax = pd.subplot()
+    ax.plot(freq, F)
+    ax.set_xlabel("Frequency (Hz)")
+    ax.set_ylabel("Log power (dB)")
+    ax.set_title(title)
+    pd.display()
+
+def positionSpectrum(pd, title):
+    return frequencySpectrum(pd, title)
+
+def speedSpectrum(pd, title):
+    def transform(pointData):
+        return (pointData[:,1:,:] - pointData[:,:-1,:]) * pd.parent().data.framerate
+    return frequencySpectrum(pd, title, transform)
+
+
 def positionSpectrogram(pd):
     trajdata = pd.parent().data
     pd.clear()
@@ -93,7 +121,6 @@ def positionSpectrogram(pd):
             ax = pd.figure.add_subplot(numRows, numCols, n)
             ax.specgram(subjdata[:,i])
             n += 1
-
     pd.display()
 
 def energyVsTime(pd):
@@ -120,7 +147,7 @@ def scree(plotDialog, title, transform=None):
 
 def intPca3d(plotDialog, title, transform=None):
     trajdata = plotDialog.parent().data
-    data, names = preprocessPosition(trajdata)
+    data, names = analysis.preprocessPosition(trajdata)
     pca = [fitPca(m, True, transform) for m in data]
     plotDialog.figure.clear()
     ax = plotDialog.figure.add_subplot(111, projection='3d')
