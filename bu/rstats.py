@@ -1,5 +1,6 @@
 import errors
 import numpy as np
+from analysis import  preprocessPosition
 
 class RPlotException(errors.Warning):
     pass
@@ -34,23 +35,6 @@ def rLibrary(name, msg):
 
 def rotate180(data):
     data[:,:,:2] *= -1
-
-def separateComponents(d):
-    return np.concatenate(d,1)
-
-def preprocessPosition(trajdata, flattenFunc=separateComponents, xyzNames=True):
-    data, names = trajdata.posBySubj()
-    if names[0] != names[1]:
-        print(names[0])
-        print(names[1])
-        raise RPlotError("Cannot preprocess positions. The two subjects " + \
-                         "don't have the same part labels.")
-    data = [flattenFunc(d) for d in data]
-    if xyzNames:
-        newNames = [n + d for n in names[0] for d in ['X', 'Y', 'Z']]
-    else:
-        newNames = names[0]
-    return data, newNames
 
 def scalarSpeed(data):
     s = (data[:,1:,:] - data[:,:1,:])
