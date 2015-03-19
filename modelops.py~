@@ -81,12 +81,12 @@ def averageSameNameTrajectories(data, progress):
             heads.append(traj)
         else:
             indTrajs.setdefault(traj.name, []).append(traj)
-    newTrajs = [] # List of new trajs
+    newTrajs = [] # List of new trajedies
     progress.setValue(0)
     # average each list of trajectories
     nameCount = 0
     for name, trajs in indTrajs.items():
-        # find begining and end frame
+        # find being and end frame
         beginFrame = min([t.beginFrame for t in trajs])
         endFrame = max([t.endFrame for t in trajs])
         current = None

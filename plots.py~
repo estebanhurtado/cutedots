@@ -27,7 +27,7 @@ def plotSubjectFunc(pd, func, subplot=True):
             ax.plot(t, f)
 
 
-def continuity(plotDialog):
+def continuity(pd):
     data = pd.parent().data
 
     # Organize curves by label
@@ -94,7 +94,7 @@ def frequencySpectrum(pd, title, transform=None):
     ax = pd.subplot()
     ax.plot(freq, F)
     ax.set_xlabel("Frequency (Hz)")
-    ax.set_ylabel("Log power spectrum density (dB)")
+    ax.set_ylabel("Log power (dB)")
     ax.set_title(title)
     pd.display()
 

@@ -27,7 +27,7 @@ def plotSubjectFunc(pd, func, subplot=True):
             ax.plot(t, f)
 
 
-def continuity(plotDialog):
+def continuity(pd):
     data = pd.parent().data
 
     # Organize curves by label
@@ -82,11 +82,12 @@ def lengthHistogram(pd):
 
 def frequencySpectrum(pd, title, transform=None):
     trajdata = pd.parent().data
-    pointData = np.array([t.pointData for t in trajdata.trajs])
+    pointData = trajdata.asMaskedArray()
     if not transform is None:
         pointData = transform(pointData)
-    comps = np.concatenate(pointData, 1)
-    m = np.mean(comps, 1)
+    print(pointData.shape)
+    m = (pointData.mean(0)**2).sum(1)**0.5
+    print(m.shape)
     m -= np.mean(m)
     F, freq = mlab.psd(m, NFFT=256, Fs=trajdata.framerate)
     F = 10*np.log10(F)
