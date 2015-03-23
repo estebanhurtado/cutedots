@@ -20,8 +20,8 @@ from PySide import QtGui, QtOpenGL, QtCore
 from PySide.QtCore import Qt
 import dotsio
 import modelops
-import rstats
-#import actions
+#import rstats
+import actions
 from widgets import *
 
 about_text = """

@@ -160,3 +160,20 @@ def intPca3d(plotDialog, title, transform=None):
     ax.set_zlabel("Third dimension")
     ax.set_title(title)
     plotDialog.display()
+
+def pcaDistance(plotDialog, title, transform=None):
+    trajdata = plotDialog.parent().data
+    data, names = analysis.preprocessPosition(trajdata)
+    pca = [fitPca(m, True, transform) for m in data][:2]
+    plotDialog.figure.clear()
+    ax = plotDialog.figure.add_subplot(111)
+    proj1 = pca[0][2]
+    proj2 = pca[1][2]
+    distance = ((proj2 - proj1)**2).sum(1)**0.5
+    time = np.arange(distance.shape[0]) / float(trajdata.framerate)
+    ax.plot(time, distance)
+    ax.set_xlabel("Time")
+    ax.set_ylabel("PCA distance")
+    ax.set_title(title)
+    plotDialog.display()
+

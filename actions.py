@@ -15,6 +15,7 @@
 
 from PySide import QtCore, QtGui
 import preprocess
+import transform
 import analysis
 from plotdialog import DataPlot
 import modelops
@@ -37,6 +38,8 @@ class CuteDotsActions(QtCore.QObject):
     def makeMenus(self):
         self.fileMenu()
         self.operationsMenu()
+        self.signalMenu()
+        self.analysisMenu()
         self.plotMenu()
         self.helpMenu()
 
@@ -96,10 +99,24 @@ class CuteDotsActions(QtCore.QObject):
                        self.removeShort)
 
         menu.addSeparator()
-        menu.addAction('Delete current frame and all the next',
+        menu.addAction('Delete from current frame to end',
                        self.cutRight)
         menu.addAction('Delete frames before the current one',
                        self.cutLeft)
+
+    def signalMenu(self):
+        bar = self.parent().menuBar()
+        menu = bar.addMenu('Signal')
+        
+        menu.addAction('Recursive 4-stage low pass filter',
+                       self.lpFilter)
+
+    def analysisMenu(self):
+        bar = self.parent().menuBar()
+        menu = bar.addMenu('Analysis')
+
+        menu.addAction('PCA varimax',
+                       self.pcaVarimax)
 
     def plotMenu(self):
         bar = self.parent().menuBar()
@@ -118,6 +135,8 @@ class CuteDotsActions(QtCore.QObject):
                                self.positionScreePlot)
         positionMenu.addAction('PCA 3D plot',
                                self.positionPca3d)
+        positionMenu.addAction('PCA distance vs time',
+                               self.positionPcaDistance)
 
         speedMenu = menu.addMenu('Speed')
         speedMenu.addAction('Spectrum density',
@@ -126,6 +145,8 @@ class CuteDotsActions(QtCore.QObject):
                             self.speedScreePlot)
         speedMenu.addAction('PCA 3D plot',
                             self.speedPca3d)
+        speedMenu.addAction('PCA distance vs time',
+                            self.speedPcaDistance)
 
 
         energyMenu = menu.addMenu('Energy')
@@ -289,6 +310,22 @@ class CuteDotsActions(QtCore.QObject):
     def cutLeft(self):
         self.parent().model.cutLeft()
 
+# SIGNAL
+
+    @warnIfNoDataLoaded
+    @updateDisplay
+    @updateStatus
+    def lpFilter(self):
+        cutOff, ok = QtGui.QInputDialog.getDouble(
+            self.parent(), "Low pass filter cutoff frequency",
+            "Cutoff (36.8% decay - Hz)", 10.0, 0.0, 1000.0)
+        transform.LpFilterTrajData(self.parent().data, cutOff)
+
+# ANALYSIS
+
+    @warnIfNoDataLoaded
+    def pcaVarimax(self):
+        pystats.pcaVarimax(self.parent().data)
 
 # PLOTS
 
@@ -319,6 +356,11 @@ class CuteDotsActions(QtCore.QObject):
             self.newDataPlot(),
             "PCA 3D plot of marker position components")
 
+    def positionPcaDistance(self):
+        plots.pcaDistance(
+            self.newDataPlot(),
+            "Subject distance vs. time in PCA space")
+
     # Speed
 
     @warnIfNoDataLoaded
@@ -332,14 +374,21 @@ class CuteDotsActions(QtCore.QObject):
         plots.scree(
             self.newDataPlot(),
             "Scree plot of marker speed components",
-            pystats.speedFunc(data.framerate))
+            analysis.speedFunc(data.framerate))
     @warnIfNoDataLoaded
     def speedPca3d(self):
         data = self.parent().data
         plots.intPca3d(
             self.newDataPlot(),
             "PCA 3D plot of marker speed components",
-            pystats.speedFunc(data.framerate))
+            analysis.speedFunc(data.framerate))
+
+    def speedPcaDistance(self):
+        data = self.parent().data
+        plots.pcaDistance(
+            self.newDataPlot(),
+            "Subject distance vs. time in PCA space",
+            analysis.speedFunc(data.framerate))
 
     @warnIfNoDataLoaded
     def plotEnergy(self):
