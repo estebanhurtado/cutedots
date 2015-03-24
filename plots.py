@@ -2,9 +2,10 @@ import pylab as pl
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 from mpl_toolkits.mplot3d import Axes3D
-from pystats import fitPca
+from pystats import fitPca, fitPcaRotation
 import analysis
 import numpy as np
+import scipy.signal as sig
 
 def plotSubjectFunc(pd, func, subplot=True):
     "Makes a plot of a time function by subject"
@@ -146,10 +147,10 @@ def scree(plotDialog, title, transform=None):
     ax.set_title(title)
     plotDialog.display()
 
-def intPca3d(plotDialog, title, transform=None):
+def intPca3d(plotDialog, title, transform=None, rotation=None):
     trajdata = plotDialog.parent().data
     data, names = analysis.preprocessPosition(trajdata)
-    pca = [fitPca(m, True, transform) for m in data]
+    pca = [fitPcaRotation(m, True, transform, rotation) for m in data]
     plotDialog.figure.clear()
     ax = plotDialog.figure.add_subplot(111, projection='3d')
     subj = 1
@@ -161,15 +162,19 @@ def intPca3d(plotDialog, title, transform=None):
     ax.set_title(title)
     plotDialog.display()
 
-def pcaDistance(plotDialog, title, transform=None):
+def pcaDistance(plotDialog, title, transform=None, rotation=None):
     trajdata = plotDialog.parent().data
     data, names = analysis.preprocessPosition(trajdata)
-    pca = [fitPca(m, True, transform) for m in data][:2]
+    pca = [fitPcaRotation(m, True, transform, rotation) for m in data][:2]
     plotDialog.figure.clear()
     ax = plotDialog.figure.add_subplot(111)
     proj1 = pca[0][2]
     proj2 = pca[1][2]
     distance = ((proj2 - proj1)**2).sum(1)**0.5
+    fr = int(trajdata.framerate)
+    ksize = fr + int(1-(fr%2))
+#    distance = sig.medfilt(distance, [fr + int(1-(fr%2))])
+    distance = sig.lfilter(np.ones(ksize)/ksize, [1.0], distance)
     time = np.arange(distance.shape[0]) / float(trajdata.framerate)
     ax.plot(time, distance)
     ax.set_xlabel("Time")
@@ -177,3 +182,7 @@ def pcaDistance(plotDialog, title, transform=None):
     ax.set_title(title)
     plotDialog.display()
 
+def pcaCorr(plotDialog, transform=None, rotation=varimax):
+    trajdata = plotDialog.parent().data
+    data, names = analysis.preprocessPosition(trajdata)
+#    pca

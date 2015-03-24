@@ -354,12 +354,14 @@ class CuteDotsActions(QtCore.QObject):
     def positionPca3d(self):
         plots.intPca3d(
             self.newDataPlot(),
-            "PCA 3D plot of marker position components")
+            "PCA 3D plot of marker position components",
+            None, pystats.varimax)
 
     def positionPcaDistance(self):
         plots.pcaDistance(
             self.newDataPlot(),
-            "Subject distance vs. time in PCA space")
+            "Subject distance vs. time in PCA space",
+            None, pystats.varimax)
 
     # Speed
 
@@ -381,14 +383,14 @@ class CuteDotsActions(QtCore.QObject):
         plots.intPca3d(
             self.newDataPlot(),
             "PCA 3D plot of marker speed components",
-            analysis.speedFunc(data.framerate))
+            analysis.speedFunc(data.framerate), pystats.varimax)
 
     def speedPcaDistance(self):
         data = self.parent().data
         plots.pcaDistance(
             self.newDataPlot(),
             "Subject distance vs. time in PCA space",
-            analysis.speedFunc(data.framerate))
+            analysis.speedFunc(data.framerate), pystats.varimax)
 
     @warnIfNoDataLoaded
     def plotEnergy(self):

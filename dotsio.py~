@@ -208,7 +208,7 @@ def trajDataFromH5(filename, progress=None):
     totalTrajs = len(list(group))        # Find number of trajectories
     for dsetName in list(group):
         dset = group[dsetName]
-        tr = Traj(int(dset.attrs['begin_frame']), str(dset.attrs['name'].decode('ascii')))
+        tr = Traj(int(dset.attrs['begin_frame']), str(dset.attrs['name']))
         tr.pointData = [np.array(p) for p in  dset.value.tolist()]
         td.trajs.append(tr)
         if progress is not None:

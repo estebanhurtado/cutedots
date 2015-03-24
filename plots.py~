@@ -82,11 +82,12 @@ def lengthHistogram(pd):
 
 def frequencySpectrum(pd, title, transform=None):
     trajdata = pd.parent().data
-    pointData = np.array([t.pointData for t in trajdata.trajs])
+    pointData = trajdata.asMaskedArray()
     if not transform is None:
         pointData = transform(pointData)
-    comps = np.concatenate(pointData, 1)
-    m = np.mean(comps, 1)
+    print(pointData.shape)
+    m = (pointData.mean(0)**2).sum(1)**0.5
+    print(m.shape)
     m -= np.mean(m)
     F, freq = mlab.psd(m, NFFT=256, Fs=trajdata.framerate)
     F = 10*np.log10(F)
@@ -159,3 +160,20 @@ def intPca3d(plotDialog, title, transform=None):
     ax.set_zlabel("Third dimension")
     ax.set_title(title)
     plotDialog.display()
+
+def pcaDistance(plotDialog, title, transform=None):
+    trajdata = plotDialog.parent().data
+    data, names = analysis.preprocessPosition(trajdata)
+    pca = [fitPca(m, True, transform) for m in data][:2]
+    plotDialog.figure.clear()
+    ax = plotDialog.figure.add_subplot(111)
+    proj1 = pca[0][2]
+    proj2 = pca[1][2]
+    distance = ((proj2 - proj1)**2).sum(1)**0.5
+    time = np.arange(distance.shape[0]) / float(trajdata.framerate)
+    ax.plot(time, distance)
+    ax.set_xlabel("Time")
+    ax.set_ylabel("PCA distance")
+    ax.set_title(title)
+    plotDialog.display()
+

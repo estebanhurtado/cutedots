@@ -36,7 +36,7 @@ class BinStruct:
     def __str__(self):
         s = ""
         for name, type in self.structList:
-            s += "%s = %s\n" % (name, repr(self.storageDict[name]))
+            s += "%s = %s\n" % (name, str(self.storageDict[name]))
         return s
 
 # Data header structure
@@ -147,7 +147,7 @@ class ParamRecord(BinStruct):
         else:
             names = ["nameLen","groupID","name","nextRecStart","elemLen","numDims","dims","data"]
         for name in names:
-            s += "%s = %s\n" % (name, repr(self.__dict__[name]))
+            s += "%s = %s\n" % (name, str(self.__dict__[name]))
         return s
 
 class P3df:

@@ -98,7 +98,10 @@ class ModelState:
 
     # Info about labels
     def bodyPartNum(self):
-        return bpnum[ self.bodyPart() ]
+        try:
+            return bpnum[ self.bodyPart() ]
+        except:
+            return bpnum[ 'tr' ]
     def humanReadPart(self):
         n = self.currentTraj().name
         return humanside.get(n[2], '-') + ' ' + humanbp.get(n[:2], '-') + ' of ' + n[3]

@@ -188,7 +188,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     @updateStatus
     @updateNumFrames
     def loadDataFile(self, fn):
-        if self.data is not None and self.data.changed:
+        if self.askSave():
             self.saveFile()
         progress = self.mkProgress("Loading C3D...", 100, "Cancel")
         self.gl.dots.loadData(fn, progress)
@@ -262,8 +262,17 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         if self.data is not None:
             self.data.changed = changed
 
+    def askSave(self):
+        if self.data is not None and self.data.changed:
+            answer = QtGui.QMessageBox.question(
+                self, "Exit", "Data was modified. Save to disk?",
+                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            return answer
+        return False
+
     def closeEvent(self, event):
-        self.saveFile()
+        if self.askSave():
+            self.saveFile()
         event.accept()
 
     def keyPressEvent(self, e):

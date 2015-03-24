@@ -12,7 +12,6 @@
 # Cutedots. If not, see <http://http://opensource.org/licenses/rpl-1.5>.
 
 from time import time
-import cPickle as pickle
 from trajdata import TrajData
 from camstate import CamState
 

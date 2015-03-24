@@ -292,9 +292,10 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             msg = "No data loaded from file"
             self.statusBar().showMessage(msg)
             return
-        msg = "Frame: %d   |   Num. points: %d   |  traj: %d of %d   |   " % (
+        msg = "Frame: %d   |   Num. points: %d   |  traj: [%s] %d of %d   |   " % (
             self.model.frame,
             self.data.numPoints(self.model.frame),
+            self.model.data.trajs[self.model.traj],
             self.model.traj,
             self.data.numTrajs)
         msg += self.model.humanReadPart()

@@ -209,6 +209,8 @@ def trajDataFromH5(filename, progress=None):
     for dsetName in list(group):
         dset = group[dsetName]
         tr = Traj(int(dset.attrs['begin_frame']), str(dset.attrs['name']))
+        if tr.name.startswith("b'") and tr.name.endswith("'"):
+            tr.name = tr.name[2:-1]
         tr.pointData = [np.array(p) for p in  dset.value.tolist()]
         td.trajs.append(tr)
         if progress is not None:
