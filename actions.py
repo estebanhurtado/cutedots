@@ -14,6 +14,7 @@
 # Cutedots. If not, see <http://opensource.org/licenses/rpl-1.5>.
 
 from PySide import QtCore, QtGui
+from PySide.QtWebKit import QWebView
 import preprocess
 import transform
 import analysis
@@ -21,6 +22,16 @@ from plotdialog import DataPlot
 import modelops
 import pystats
 import plots
+
+def displayHtml(parent, title, html):
+    win = QtGui.QDialog(parent)
+    win.setWindowTitle(title)
+    layout = QtGui.QVBoxLayout()
+    win.setLayout(layout)
+    view = QWebView()
+    view.setHtml(html)
+    layout.addWidget(view)
+    win.show()
 
 class CuteDotsActions(QtCore.QObject):
     def __init__(self, parent):
@@ -115,8 +126,10 @@ class CuteDotsActions(QtCore.QObject):
         bar = self.parent().menuBar()
         menu = bar.addMenu('Analysis')
 
+        menu.addAction('PCA',
+                       self.pcaOutput)
         menu.addAction('PCA varimax',
-                       self.pcaVarimax)
+                       self.pcaOutputVarimax)
 
     def plotMenu(self):
         bar = self.parent().menuBar()
@@ -137,6 +150,8 @@ class CuteDotsActions(QtCore.QObject):
                                self.positionPca3d)
         positionMenu.addAction('PCA distance vs time',
                                self.positionPcaDistance)
+        positionMenu.addAction('PCA correlation',
+                               self.positionPcaCorr)
 
         speedMenu = menu.addMenu('Speed')
         speedMenu.addAction('Spectrum density',
@@ -324,8 +339,15 @@ class CuteDotsActions(QtCore.QObject):
 # ANALYSIS
 
     @warnIfNoDataLoaded
-    def pcaVarimax(self):
-        pystats.pcaVarimax(self.parent().data)
+    def pcaOutput(self):
+        html = pystats.pcaVarimax(self.parent().data, None, None)
+        displayHtml(self.parent(), "Principal component analysis", html)
+
+    @warnIfNoDataLoaded
+    def pcaOutputVarimax(self):
+        html = pystats.pcaVarimax(self.parent().data)
+        displayHtml(self.parent(), "Principal component analysis", html)
+
 
 # PLOTS
 
@@ -361,6 +383,12 @@ class CuteDotsActions(QtCore.QObject):
         plots.pcaDistance(
             self.newDataPlot(),
             "Subject distance vs. time in PCA space",
+            None, pystats.varimax)
+
+    def positionPcaCorr(self):
+        plots.pcaCorr(
+            self.newDataPlot(),
+            "Correlation of PCA components",
             None, pystats.varimax)
 
     # Speed

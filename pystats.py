@@ -1,5 +1,6 @@
 from analysis import preprocessPosition
 from scipy import linalg as la
+import scipy.signal as sig
 from numpy.linalg import svd
 import numpy as np
 
@@ -43,14 +44,36 @@ def printMat(mat):
             print(sym[k], end='')
         print('')
 
-def pcaVarimax(trajdata, transform=None):
+def pcaVarimax(trajdata, transform=None, rotation=varimax):
     data, names = preprocessPosition(trajdata)
-    pca = [fitPca(m, False, transform) for m in data]
-    evec, eval = pca[0]
-    printMat(evec)
-    print ("===================")
-    printMat(np.dot(evec,varimax(evec)))
-
+    pca = [fitPcaRotation(m, False, transform, rotation) for m in data]
+    out = r'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml/DTD/xhtml-transitional.dtd">'
+    out += r'<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">'
+    out += '<head></head>'
+    out += '<body>'
+    subject = 1
+    for evec, eval in pca:
+        out += "<h2>Subject %d</h2>" % subject
+        subject += 1
+        out += "<h3>Eigenvectors</h3><table><tr><th></th>"
+        for i in range(evec.shape[0]):
+            out += "<th>Comp %d</th>" % (i+1)
+        out += "</tr>"
+        for i in range(evec.shape[1]):
+            out += "<tr><th>%s</th>" % names[i]
+            for j in range(evec.shape[0]):
+                w = evec[j,i]
+                out += ("<td>%.3f</td>" % w) if w >= 0.3 else "<td></td>"
+            out += "</tr>"
+        out += "</table>\n<br/><h3>Eigenvalues</h3><table>"
+        out += "<tr><th>Component</th><th>Value</th><th>Cum. exp. variance</th></tr>"
+        cumvar = 100.0 * np.cumsum(np.array(eval) / np.sum(eval))
+        for i in range(len(eval)):
+            out += "<tr><th>%d</th><td>%.3f</td><td>%.3f</td></tr>" % ((i+1), eval[i], cumvar[i])
+        out += "</table>"
+    out += "</body></html>"
+    print(out)
+    return out
 
 def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
     "Variables in different rows"
@@ -64,3 +87,9 @@ def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
     else:
         return (np.dot(result[0],R), result[1])
 
+
+def fftCorr(a, b):
+    print(a.mean(), b.mean())
+    za = (a - a.mean()) / a.std()
+    zb = (b - b.mean()) / b.std()
+    return sig.fftconvolve(za, zb[::-1]) / (len(za)-1.0)

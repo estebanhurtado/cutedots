@@ -267,7 +267,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
             answer = QtGui.QMessageBox.question(
                 self, "Exit", "Data was modified. Save to disk?",
                 QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            return answer
+            return answer == QtGui.QMessageBox.Yes
         return False
 
     def closeEvent(self, event):

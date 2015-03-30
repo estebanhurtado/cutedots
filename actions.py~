@@ -39,6 +39,7 @@ class CuteDotsActions(QtCore.QObject):
         self.fileMenu()
         self.operationsMenu()
         self.signalMenu()
+        self.analysisMenu()
         self.plotMenu()
         self.helpMenu()
 
@@ -110,6 +111,13 @@ class CuteDotsActions(QtCore.QObject):
         menu.addAction('Recursive 4-stage low pass filter',
                        self.lpFilter)
 
+    def analysisMenu(self):
+        bar = self.parent().menuBar()
+        menu = bar.addMenu('Analysis')
+
+        menu.addAction('PCA varimax',
+                       self.pcaVarimax)
+
     def plotMenu(self):
         bar = self.parent().menuBar()
         menu = bar.addMenu('Plot')
@@ -129,6 +137,8 @@ class CuteDotsActions(QtCore.QObject):
                                self.positionPca3d)
         positionMenu.addAction('PCA distance vs time',
                                self.positionPcaDistance)
+        positionMenu.addAction('PCA correlation',
+                               self.positionPcaCorr)
 
         speedMenu = menu.addMenu('Speed')
         speedMenu.addAction('Spectrum density',
@@ -313,6 +323,12 @@ class CuteDotsActions(QtCore.QObject):
             "Cutoff (36.8% decay - Hz)", 10.0, 0.0, 1000.0)
         transform.LpFilterTrajData(self.parent().data, cutOff)
 
+# ANALYSIS
+
+    @warnIfNoDataLoaded
+    def pcaVarimax(self):
+        pystats.pcaVarimax(self.parent().data)
+
 # PLOTS
 
     @warnIfNoDataLoaded
@@ -340,12 +356,20 @@ class CuteDotsActions(QtCore.QObject):
     def positionPca3d(self):
         plots.intPca3d(
             self.newDataPlot(),
-            "PCA 3D plot of marker position components")
+            "PCA 3D plot of marker position components",
+            None, pystats.varimax)
 
     def positionPcaDistance(self):
         plots.pcaDistance(
             self.newDataPlot(),
-            "Subject distance vs. time in PCA space")
+            "Subject distance vs. time in PCA space",
+            None, pystats.varimax)
+
+    def positionPcaCorr(self):
+        plots.pcaCorr(
+            self.newDataPlot(),
+            "Correlation of PCA components",
+            None, pystats.varimax)
 
     # Speed
 
@@ -367,13 +391,14 @@ class CuteDotsActions(QtCore.QObject):
         plots.intPca3d(
             self.newDataPlot(),
             "PCA 3D plot of marker speed components",
-            analysis.speedFunc(data.framerate))
+            analysis.speedFunc(data.framerate), pystats.varimax)
 
     def speedPcaDistance(self):
+        data = self.parent().data
         plots.pcaDistance(
             self.newDataPlot(),
             "Subject distance vs. time in PCA space",
-            analysis.speedFunc(data.framerate))
+            analysis.speedFunc(data.framerate), pystats.varimax)
 
     @warnIfNoDataLoaded
     def plotEnergy(self):

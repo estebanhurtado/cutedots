@@ -2,7 +2,7 @@ import pylab as pl
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 from mpl_toolkits.mplot3d import Axes3D
-from pystats import fitPca, fitPcaRotation
+from pystats import fitPca, fitPcaRotation, fftCorr
 import analysis
 import numpy as np
 import scipy.signal as sig
@@ -182,7 +182,39 @@ def pcaDistance(plotDialog, title, transform=None, rotation=None):
     ax.set_title(title)
     plotDialog.display()
 
-def pcaCorr(plotDialog, transform=None, rotation=varimax):
+# def pcaCorr(plotDialog, title, transform=None, rotation=None):
+#     trajdata = plotDialog.parent().data
+#     data, names = analysis.preprocessPosition(trajdata)
+#     pca = [fitPcaRotation(m, True, transform, rotation) for m in data][:2]
+#     corr = [fftCorr(pca[0][2][:,i], pca[1][2][:,i]) for i in range(pca[0][2].shape[1])]
+#     ax = plotDialog.figure.add_subplot(111)
+#     for c in corr:
+#         N = len(c)
+#         mid = int(N/2)
+#         span = trajdata.framerate * 3
+#         x = c[mid-span:mid+span]
+#         t = np.arange(-span, span) / trajdata.framerate
+#         ax.plot(t, np.abs(x))
+#     ax.set_xlabel("Time (secs.)")
+#     ax.set_ylabel("Correlation")
+#     ax.set_title(title)
+#     plotDialog.display()
+
+    
+def pcaCorr(plotDialog, title, transform=None, rotation=None):
     trajdata = plotDialog.parent().data
     data, names = analysis.preprocessPosition(trajdata)
-#    pca
+    pca = [fitPcaRotation(m, True, transform, rotation) for m in data][:2]
+    corr = [fftCorr(pca[0][2][:,i], pca[1][2][:,i]) for i in range(pca[0][2].shape[1])]
+    ax = plotDialog.figure.add_subplot(111)
+    c = np.mean(corr,0)
+    N = len(c)
+    mid = int(N/2)
+    span = trajdata.framerate * 3
+    x = c[mid-span:mid+span]
+    t = np.arange(-span, span) / trajdata.framerate
+    ax.plot(t, x)
+    ax.set_xlabel("Time (secs.)")
+    ax.set_ylabel("Correlation")
+    ax.set_title(title)
+    plotDialog.display()
