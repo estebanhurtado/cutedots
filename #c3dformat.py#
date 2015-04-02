@@ -195,7 +195,6 @@ class C3d:
         # Read header
         data = fin.read(512)
         self.header = C3dHeader(data)
-        printStruct(self.header)
         # Read parameter header
         parBlock = self.header.firstParamBlock - 1
         fin.seek(parBlock*512)
@@ -203,17 +202,17 @@ class C3d:
         self.paramHeader = ParamHeader(data)
         printStruct(self.paramHeader)
         # Read parameter section
-        fin.seek(parBlock*512+4)
-        data = fin.read(self.paramHeader.numBlocks * 512-4)
-        start = 0
-        self.paramRecords = []
-        while True:
-            rec = ParamRecord(data[start:])
-            printStruct(rec)
-            self.paramRecords.append(rec)
-            if rec.nextRecStart == 0:
-                break
-            start += 2 + rec.nameLen + rec.nextRecStart
+        if self.paramHeader.numBlocks > 0:
+            fin.seek(parBlock*512+4)
+            data = fin.read(self.paramHeader.numBlocks * 512-4)
+            start = 0
+            self.paramRecords = []
+            while True:
+                rec = ParamRecord(data[start:])
+                self.paramRecords.append(rec)
+                if rec.nextRecStart == 0:
+                    break
+                start += 2 + rec.nameLen + rec.nextRecStart
         # Organize groups
         self.groups = dict()
         for rec in self.paramRecords:

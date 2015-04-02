@@ -86,9 +86,7 @@ def frequencySpectrum(pd, title, transform=None):
     pointData = trajdata.asMaskedArray()
     if not transform is None:
         pointData = transform(pointData)
-    print(pointData.shape)
     m = (pointData.mean(0)**2).sum(1)**0.5
-    print(m.shape)
     m -= np.mean(m)
     F, freq = mlab.psd(m, NFFT=256, Fs=trajdata.framerate)
     F = 10*np.log10(F)
@@ -116,7 +114,6 @@ def positionSpectrogram(pd):
     flat = [np.array(analysis.separateComponents(d)) for d in trajs]
     numCols = len(flat)
     numRows = max([f.shape[1] for f in flat])
-    print(numCols, numRows)
     n=1
     for subjdata in flat:
         for i in range(subjdata.shape[1]):

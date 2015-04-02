@@ -98,7 +98,7 @@ class CuteDotsActions(QtCore.QObject):
         menu.addSeparator()
         menu.addAction('Match broken trajectories...',
                        self.matchTrajectories, 'Ctrl+M')
-        menu.addAction('Average trajectories with same name into one',
+        menu.addAction('Average trajectories by name',
                        self.averageTrajs)
         menu.addAction('Fill gaps in trajectories...',
                        self.fillGaps)

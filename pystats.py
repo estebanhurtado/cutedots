@@ -1,3 +1,4 @@
+from __future__ import print_function
 from analysis import preprocessPosition
 from scipy import linalg as la
 import scipy.signal as sig
@@ -35,15 +36,6 @@ def varimax(Phi, gamma = 1.0, q = 20, tol = 1e-6):
         if d_old!=0 and d/d_old < 1 + tol: break
     return R
 
-def printMat(mat):
-    sym = [' ', '.', 'o', 'O', '#']
-    for i in range(mat.shape[0]):
-        print(i, '\t:', end='')
-        for j in range(mat.shape[1]):
-            k = int(mat[i,j] * 5 - 0.00000001)
-            print(sym[k], end='')
-        print('')
-
 def pcaVarimax(trajdata, transform=None, rotation=varimax):
     data, names = preprocessPosition(trajdata)
     pca = [fitPcaRotation(m, False, transform, rotation) for m in data]
@@ -72,7 +64,6 @@ def pcaVarimax(trajdata, transform=None, rotation=varimax):
             out += "<tr><th>%d</th><td>%.3f</td><td>%.3f</td></tr>" % ((i+1), eval[i], cumvar[i])
         out += "</table>"
     out += "</body></html>"
-    print(out)
     return out
 
 def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
@@ -89,7 +80,6 @@ def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
 
 
 def fftCorr(a, b):
-    print(a.mean(), b.mean())
     za = (a - a.mean()) / a.std()
     zb = (b - b.mean()) / b.std()
     return sig.fftconvolve(za, zb[::-1]) / (len(za)-1.0)

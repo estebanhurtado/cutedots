@@ -73,6 +73,8 @@ def pca(trajdata):
 
     eye = np.eye(trajdata.numTrajs)
     dirs = np.dot(eigvec[:2,:],eye)
+    print dirs
+    print np.shape(dirs)
 
 # soa = np.array( [ [0,0,3,2], [0,0,1,1],[0,0,9,9]]) 
 # X,Y,U,V = zip(*soa)

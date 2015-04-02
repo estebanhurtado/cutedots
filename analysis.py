@@ -28,8 +28,6 @@ def separateComponents(d):
 def preprocessPosition(trajdata, flattenFunc=separateComponents, xyzNames=True):
     data, names = trajdata.posBySubj()
     if names[0] != names[1]:
-        print(names[0])
-        print(names[1])
         raise RPlotError("Cannot preprocess positions. The two subjects " + \
                          "don't have the same part labels.")
     data = [flattenFunc(d) for d in data]

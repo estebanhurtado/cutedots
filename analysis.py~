@@ -16,6 +16,12 @@ import numpy as np
 import scipy as sp
 import numpy.ma as ma
 
+def speedFunc(samplerate):
+    def func(data):
+        print("Computing speed")
+        return (data[1:,...] - data[:-1,...])*samplerate
+    return func
+
 def separateComponents(d):
     return np.concatenate(d,1)
 
