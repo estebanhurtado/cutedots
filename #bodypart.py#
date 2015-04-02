@@ -1,0 +1,45 @@
+from enum import Enum, unique
+
+@unique
+class Subpart(Enum):
+    L = 1,
+    R = 2
+    N = 3
+    A = 4
+    B = 5
+    C = 6
+
+class BodyPart(Enum):
+    UB = 0
+    LB = 1
+    Kn = 2
+    Ft = 3
+    El = 4
+    Hd = 5
+    NA = 6
+    Hd = 7
+
+class MarkerID:
+    def __init__(self, subject, bodypart, subpart):
+        self.subject = subject
+        self.bodypart = bodypart
+        self.subpart = subpart
+    def __str__(self):
+        return self.bodypart.name + self.subpart.name + str(self.subject)
+    @staticmethod
+    def fromStr(s):
+        try: subject = int(s[3])
+        except: subject = 1
+        try: bodypart = BodyPart.__members__[s[:2]]
+        except: bodypart = BodyPart.NA
+        try: subpart = Subpart.__members__[s[2]]
+        except: subpart = Subpart.N
+    def __getitem__(self, i):
+        return str(self)[i]
+    def __setitem__(self,i, x):
+        if i == 2:
+            self.subpart = Subpart.__members__[x]
+        elif i == 3:
+            self.subject = int(x)
+        else:
+            raise IndexError()
