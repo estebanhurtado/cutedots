@@ -15,6 +15,7 @@ import c3dformat
 from numpy import size
 import sys
 import numpy as np
+import numpy.ma as ma
 import scipy as sp
 import scipy.spatial.distance as spDistance
 from sys import float_info
@@ -141,6 +142,15 @@ class Traj:
     def __str__(self):
         return "Traj %s: %d - %d" % (self.name, self.beginFrame, self.endFrame)
 
+    @property
+    def closestPointTo(self, frame):
+        if self.hasFrame(frame):
+            return self.getFrame()
+        elif self.beginFrame > frame:
+            return self.pointData[0]
+        else:
+            return self.pointData[-1]
+
     @staticmethod
     def newFromPoint(point, frameNum):
         newTraj = Traj(frameNum)
@@ -256,6 +266,16 @@ class TrajData(object):
         self.trash = []
         self.framePointCount = None
 
+    def asMaskedArray(self):
+        minFr = self.minFrame
+        numFr = self.numFrames
+        dataList = []
+        for t in self.trajs:
+            data = ma.array(np.zeros((numFr,3)), mask=[(True,True,True)]*numFr)
+            data[t.beginFrame-minFr:t.endFrame-minFr] = ma.array(t.pointData)
+            dataList.append(data)
+        return ma.array(dataList)
+
     @property
     def numFrames(self):
         if len(self.trajs) == 0:
@@ -267,6 +287,10 @@ class TrajData(object):
     @property
     def maxFrame(self):
         return max([t.endFrame for t in self.trajs])
+
+    @property
+    def minFrame(self):
+        return min([t.beginFrame for t in self.trajs])
 
     @property
     def numTrajs(self):

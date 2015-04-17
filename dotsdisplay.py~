@@ -196,8 +196,6 @@ class DotsDisplay:
 
     def loadData(self, datafilename, progress):
         "Load data from HDF5 file."
-        if sys.version < '3':
-            datafilename = datafilename.encode('utf-8', 'ignore')
         datafilename = str(datafilename)
         if datafilename is None or datafilename == '':
             return

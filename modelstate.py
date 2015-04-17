@@ -165,24 +165,23 @@ class ModelState:
                 break
             self.traj = (self.data.numTrajs+self.traj-1) % self.data.numTrajs
 
+
     def currentIsUnlabeled(self):
-        if self.bodyPart() != 'Hd':
-            return  not self.bodyPart() in bpname[:6] \
-                or not self.side() in ['L', 'R'] \
-                or not self.subject() in ['1', '2']
-        else:
-            return not self.subject() in ['1', '2']
+        return self.currentTraj().isUnlabeled
+
+    def unlabeledTrajs(self):
+        trajs = [t for t in self.data.trajs if t.isUnlabeled]
+        return sorted(trajs, key=lambda x: x.beginFrame)
 
     def selNextUnlabTraj(self):
         if self.data is None:
             return
-        start = self.traj
-        self.traj = (self.traj+1) % self.data.numTrajs
-        while self.traj != start:
-            if self.currentIsUnlabeled():
-                self.frame = self.currentTraj().beginFrame
-                break
-            self.traj = (self.traj+1) % self.data.numTrajs
+        ul = self.unlabeledTrajs()
+        for t in ul:
+            print(t.name, t.isUnlabeled, t.part, t.side, t.subject)
+        if len(ul) > 0:
+            self.traj = self.data.trajs.index(ul[0])
+            self.frame = self.currentTraj().beginFrame
 
     def selPrevUnlabTraj(self):
         if self.data is None:

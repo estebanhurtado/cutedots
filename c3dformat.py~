@@ -195,6 +195,7 @@ class C3d:
         # Read header
         data = fin.read(512)
         self.header = C3dHeader(data)
+        printStruct(self.header)
         # Read parameter header
         parBlock = self.header.firstParamBlock - 1
         fin.seek(parBlock*512)
@@ -208,6 +209,7 @@ class C3d:
         self.paramRecords = []
         while True:
             rec = ParamRecord(data[start:])
+            printStruct(rec)
             self.paramRecords.append(rec)
             if rec.nextRecStart == 0:
                 break

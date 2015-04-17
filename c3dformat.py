@@ -230,13 +230,18 @@ class C3d:
                     pass
         # Point labels
         self.pointLabels = []
-        print("Names", [x.name for x in self.paramRecords])
-        print("Groups", [x.groupID for x in self.paramRecords])
-        labelsParam = [ x for x in self.paramRecords if x.name == "LABELS" and self.groups[x.groupID] == "POINT"][0]
+
+        try:
+            print("Names", [x.name for x in self.paramRecords])
+            print("Groups", [x.groupID for x in self.paramRecords])
+        except:
+            pass
+
+        labelsParam = [ x for x in self.paramRecords if x.name.decode() == "LABELS" and self.groups[x.groupID].decode() == "POINT"][0]
         labelLen = labelsParam.dims[0]
         text = labelsParam.data
         for i in range(self.header.numPoints):
-            self.pointLabels.append(text[i*labelLen:(i+1)*labelLen].strip(" "))
+            self.pointLabels.append(text.decode()[i*labelLen:(i+1)*labelLen].strip(" "))
         # Read data section
         numFrames = self.header.numFrames
         numPoints = self.header.numPoints
