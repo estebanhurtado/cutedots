@@ -265,7 +265,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     def askSave(self):
         if self.data is not None and self.data.changed:
             answer = QtGui.QMessageBox.question(
-                self, "Exit", "Data was modified. Save to disk?",
+                self, "Exit", "Data modified. Save to disk?",
                 QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             return answer == QtGui.QMessageBox.Yes
         return False

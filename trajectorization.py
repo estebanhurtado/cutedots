@@ -5,7 +5,7 @@ from PySide import QtCore
 
 def metricEuclidean(gap):
     def metric(a,b):
-        return np.sum((b.pointData[0] - a.pointData[-1])**2)**0.5
+        return np.sum((np.array(b.pointData[0]) - np.array(a.pointData[-1]))**2)**0.5
     return metric
 
 def metricEuclideanPredict(gap):
@@ -151,11 +151,17 @@ class Trajectorizer:
             self.progress.setLabelText("Matching adjacent trajectories (gap=%d)" % gap)
             self.progress.show()
 
+        def sortKey(x):
+            try:
+                return x[0]
+            except:
+                return 1000000
+
         while True:            
             if len(adj) == 0:
                 break
 
-            adj.sort()
+            adj.sort(key=sortKey)
             m, a, b = adj[0]
 
             if m > 2*self.distanceThreshold:

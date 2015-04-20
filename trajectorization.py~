@@ -64,7 +64,6 @@ class Trajectorizer:
             self.progress.show()
 
         numPoints = sum([p.numPoints for p in self.rdata.frames])
-        print "Initial:", numPoints, "points"
 
         current = []
         broken = []  # To store trajectories no longer tracked
@@ -206,7 +205,7 @@ class Trajectorizer:
         N = len(self.trajs)
         NxN = N*N
 
-        print "Finding adjacent trajs", len(self.trajs)
+        print("Finding adjacent trajs (N=%d)" % len(self.trajs))
         adjacent = []
         trajs = self.trajs
         i = 0

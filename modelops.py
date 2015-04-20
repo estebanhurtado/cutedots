@@ -147,7 +147,7 @@ def fillGaps(data, maxGapTime, maxSampleTime, progress):
             if gap < 0:
                 raise ProcessingException("Same name trajectories overlap. " + \
                     "Make sure trajectories are labeled correctly and use " + \
-                    "'Average same name trajectories' operation to correct minor overlaps")
+                    "'Average trajectories by name' operation to correct minor overlaps")
             elif gap == 0:
                 t0.pointData.extend(t.pointData)
                 deleteList.append(t)

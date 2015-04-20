@@ -38,6 +38,7 @@ class DotsDisplay:
     def __init__(self, textRenderFunc=lambda s: None):
         self.model = modelstate.ModelState()
         self.textRenderFunc = textRenderFunc
+        self.renderText = True
 
     def drawText(self, s):
         glDisable(GL_DEPTH_TEST);
@@ -109,7 +110,8 @@ class DotsDisplay:
             glEnd()
             # Text
             glTranslatef(0, 0, 120)
-            self.drawText(self.model.humanReadPart())
+            if self.renderText:
+                self.drawText(self.model.humanReadPart())
             glEnable(GL_LIGHTING)
             glPopMatrix()
 
@@ -183,9 +185,11 @@ class DotsDisplay:
         if self.model.anaglyph3d:
             glColorMask(GL_TRUE,GL_FALSE,GL_FALSE,GL_TRUE)
             self.locateCamera(-1)
+            self.renderText = False
         else:
             self.locateCamera(0)
         self.draw()
+        self.renderText = True
         # Draw second time
         if self.model.anaglyph3d:
             glClear(GL_DEPTH_BUFFER_BIT)
