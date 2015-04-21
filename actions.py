@@ -167,7 +167,10 @@ class CuteDotsActions(QtCore.QObject):
         energyMenu = menu.addMenu('Energy')
         energyMenu.addAction('Energy vs Time',
                              self.plotEnergy)
-
+        energyMenu.addAction('Log-Energy vs Time',
+                             self.plotLogEnergy)
+        energyMenu.addAction('Log-Energy correlation',
+                             self.plotLogEnergyCorr)
 
 
     def helpMenu(self):
@@ -423,3 +426,13 @@ class CuteDotsActions(QtCore.QObject):
     @warnIfNoDataLoaded
     def plotEnergy(self):
         plots.energyVsTime(self.newDataPlot())
+
+    @warnIfNoDataLoaded
+    def plotLogEnergy(self):
+        plots.logEnergyVsTime(self.newDataPlot())
+
+    @warnIfNoDataLoaded
+    def plotLogEnergyCorr(self):
+        plots.logEnergyCorr(self.newDataPlot())
+
+

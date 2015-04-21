@@ -83,3 +83,26 @@ def fftCorr(a, b):
     za = (a - a.mean()) / a.std()
     zb = (b - b.mean()) / b.std()
     return sig.fftconvolve(za, zb[::-1]) / (len(za)-1.0)
+
+
+def fftCorrPair(a, b, timespan, framerate):
+    c = fftCorr(a,b)
+    N = len(c)
+    mid = int(N/2)
+    span = int(framerate * timespan)
+    x = c[mid-span:mid+span]
+    t = np.arange(-span, span) / framerate
+    return x, t
+
+def pcaCorrTrajData(td, timespan, framerate):
+    data,names = preprocessPosition(td)
+    pca = [fitPcaRotation(m, True, None) for m in data][:2]
+    corr = [np.abs(fftCorr(pca[0][2][:,i], pca[1][2][:,i])) for i in range(pca[0][2].shape[1])]
+    c = np.mean(corr,0)
+    N = len(c)
+    mid = int(N/2)
+    span = int(framerate * timespan)
+    x = c[mid-span: mid+span]
+    t = np.arange(-span, span) / framerate
+    return x, t
+

@@ -58,7 +58,7 @@ def plotContinuity(data):
     pl.show()
 
 
-def energy(trajectories):
+def energy(trajectories, transform=lambda x: x):
     "Returns aggregated energy signal for all markers"
 
     maxFrame = max([t.endFrame for t in trajectories])
@@ -69,8 +69,17 @@ def energy(trajectories):
                                     100*np.array(t.pointData[:-1]))  # find speed
             trajEnergy = np.sum(trajSpeed**2,1)
             energy[t.beginFrame:t.endFrame-1] += trajEnergy     # store energy
-    return energy
+    return transform(energy)
 
+def logEnergy(trajectories):
+    return energy(trajectories, np.log)
+
+def logEnergyPairFromTrajData(td):
+    subj1 = [t for t in td.trajs if t.subject == 1]
+    subj2 = [t for t in td.trajs if t.subject == 2]
+    e1 = logEnergy(subj1)
+    e2 = logEnergy(subj2)
+    return e1, e2
 
 def trajsToMaskedPosition(trajs):
     numFrames = max([t.endFrame for t in trajs])

@@ -2,7 +2,7 @@ import pylab as pl
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 from mpl_toolkits.mplot3d import Axes3D
-from pystats import fitPca, fitPcaRotation, fftCorr
+from pystats import fitPca, fitPcaRotation, fftCorr, fftCorrPair
 import analysis
 import numpy as np
 import scipy.signal as sig
@@ -126,6 +126,10 @@ def energyVsTime(pd):
     plotSubjectFunc(pd, analysis.energy)
     pd.display()
 
+def logEnergyVsTime(pd):
+    plotSubjectFunc(pd, analysis.logEnergy)
+    pd.display()
+
 def scree(plotDialog, title, transform=None):
     trajdata = plotDialog.parent().data
     data, names = analysis.preprocessPosition(trajdata)
@@ -207,11 +211,28 @@ def pcaCorr(plotDialog, title, transform=None, rotation=None):
     c = np.mean(corr,0)
     N = len(c)
     mid = int(N/2)
-    span = trajdata.framerate * 3
+    span = trajdata.framerate * 10
     x = c[mid-span:mid+span]
     t = np.arange(-span, span) / trajdata.framerate
     ax.plot(t, x)
     ax.set_xlabel("Time (secs.)")
     ax.set_ylabel("Correlation")
     ax.set_title(title)
+    plotDialog.display()
+
+
+def logEnergyCorr(plotDialog):
+    trajdata = plotDialog.parent().data
+    e1, e2 = analysis.logEnergyPairFromTrajData(trajdata)
+    c = fftCorr(e1,e2)
+    ax = plotDialog.figure.add_subplot(111)
+    N = len(c)
+    mid = int(N/2)
+    span = trajdata.framerate * 10
+    x = c[mid-span:mid+span]
+    t = np.arange(-span, span) / trajdata.framerate
+    ax.plot(t,x)
+    ax.set_xlabel("Time (secs.)")
+    ax.set_ylabel("Correlation")
+    ax.set_title("Log-energy correlation")
     plotDialog.display()

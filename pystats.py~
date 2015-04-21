@@ -1,3 +1,4 @@
+from __future__ import print_function
 from analysis import preprocessPosition
 from scipy import linalg as la
 import scipy.signal as sig
@@ -35,23 +36,35 @@ def varimax(Phi, gamma = 1.0, q = 20, tol = 1e-6):
         if d_old!=0 and d/d_old < 1 + tol: break
     return R
 
-def printMat(mat):
-    sym = [' ', '.', 'o', 'O', '#']
-    for i in range(mat.shape[0]):
-        print(i, '\t:', end='')
-        for j in range(mat.shape[1]):
-            k = int(mat[i,j] * 5 - 0.00000001)
-            print(sym[k], end='')
-        print('')
-
-def pcaVarimax(trajdata, transform=None):
+def pcaVarimax(trajdata, transform=None, rotation=varimax):
     data, names = preprocessPosition(trajdata)
-    pca = [fitPca(m, False, transform) for m in data]
-    evec, eval = pca[0]
-    printMat(evec)
-    print ("===================")
-    printMat(np.dot(evec,varimax(evec)))
-
+    pca = [fitPcaRotation(m, False, transform, rotation) for m in data]
+    out = r'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml/DTD/xhtml-transitional.dtd">'
+    out += r'<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">'
+    out += '<head></head>'
+    out += '<body>'
+    subject = 1
+    for evec, eval in pca:
+        out += "<h2>Subject %d</h2>" % subject
+        subject += 1
+        out += "<h3>Eigenvectors</h3><table><tr><th></th>"
+        for i in range(evec.shape[0]):
+            out += "<th>Comp %d</th>" % (i+1)
+        out += "</tr>"
+        for i in range(evec.shape[1]):
+            out += "<tr><th>%s</th>" % names[i]
+            for j in range(evec.shape[0]):
+                w = evec[j,i]
+                out += ("<td>%.3f</td>" % w) if w >= 0.3 else "<td></td>"
+            out += "</tr>"
+        out += "</table>\n<br/><h3>Eigenvalues</h3><table>"
+        out += "<tr><th>Component</th><th>Value</th><th>Cum. exp. variance</th></tr>"
+        cumvar = 100.0 * np.cumsum(np.array(eval) / np.sum(eval))
+        for i in range(len(eval)):
+            out += "<tr><th>%d</th><td>%.3f</td><td>%.3f</td></tr>" % ((i+1), eval[i], cumvar[i])
+        out += "</table>"
+    out += "</body></html>"
+    return out
 
 def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
     "Variables in different rows"
@@ -66,8 +79,29 @@ def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
         return (np.dot(result[0],R), result[1])
 
 
+def pcaCorrTrajData(td, timespan, framerate):
+    data,names = preprocessPosition(td)
+    pca = [fitPcaRotation(m, True, None, None) for m in data][:2]
+    corr = [fitCorr[pca[0][2][:,i], pca[1][2][:,i]) for i in range(pca[0][2].shape[1])]
+    c = np.mean(corr,0)
+    N = len(c)
+    mid = int(N/2)
+    span = int(framerate * timespan)
+    x = c[mid-span: mid+span]
+    t = np.arange(-span, span) / framerate
+    return x, t
+
 def fftCorr(a, b):
-    print(a.mean(), b.mean())
     za = (a - a.mean()) / a.std()
     zb = (b - b.mean()) / b.std()
     return sig.fftconvolve(za, zb[::-1]) / (len(za)-1.0)
+
+
+def fftCorrPair(a, b, timespan, framerate):
+    c = fftCorr(a,b)
+    N = len(c)
+    mid = int(N/2)
+    span = int(framerate * timespan)
+    x = c[mid-span:mid+span]
+    t = np.arange(-span, span) / framerate
+    return x, t
