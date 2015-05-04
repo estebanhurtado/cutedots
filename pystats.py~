@@ -79,18 +79,6 @@ def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
         return (np.dot(result[0],R), result[1])
 
 
-def pcaCorrTrajData(td, timespan, framerate):
-    data,names = preprocessPosition(td)
-    pca = [fitPcaRotation(m, True, None, None) for m in data][:2]
-    corr = [fitCorr[pca[0][2][:,i], pca[1][2][:,i]) for i in range(pca[0][2].shape[1])]
-    c = np.mean(corr,0)
-    N = len(c)
-    mid = int(N/2)
-    span = int(framerate * timespan)
-    x = c[mid-span: mid+span]
-    t = np.arange(-span, span) / framerate
-    return x, t
-
 def fftCorr(a, b):
     za = (a - a.mean()) / a.std()
     zb = (b - b.mean()) / b.std()
@@ -105,3 +93,16 @@ def fftCorrPair(a, b, timespan, framerate):
     x = c[mid-span:mid+span]
     t = np.arange(-span, span) / framerate
     return x, t
+
+def pcaCorrTrajData(td, timespan, framerate):
+    data,names = preprocessPosition(td)
+    pca = [fitPcaRotation(m, True, None) for m in data][:2]
+    corr = [np.abs(fftCorr(pca[0][2][:,i], pca[1][2][:,i])) for i in range(pca[0][2].shape[1])]
+    c = np.mean(corr,0)
+    N = len(c)
+    mid = int(N/2)
+    span = int(framerate * timespan)
+    x = c[mid-span: mid+span]
+    t = np.arange(-span, span) / framerate
+    return x, t
+

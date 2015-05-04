@@ -79,14 +79,17 @@ def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
         return (np.dot(result[0],R), result[1])
 
 
-def fftCorr(a, b):
+def fftCorr(a, b, randomize=False):
     za = (a - a.mean()) / a.std()
     zb = (b - b.mean()) / b.std()
-    return sig.fftconvolve(za, zb[::-1]) / (len(za)-1.0)
+    if randomize:
+        zb = np.roll(zb, np.random.randint(1, len(zb)))
+    c = sig.fftconvolve(za, zb[::-1])
+    return c / (sig.triang(len(c)) * (len(za)-1.0))
 
 
-def fftCorrPair(a, b, timespan, framerate):
-    c = fftCorr(a,b)
+def fftCorrPair(a, b, timespan, framerate, randomize=False):
+    c = fftCorr(a,b,randomize)
     N = len(c)
     mid = int(N/2)
     span = int(framerate * timespan)
@@ -94,10 +97,10 @@ def fftCorrPair(a, b, timespan, framerate):
     t = np.arange(-span, span) / framerate
     return x, t
 
-def pcaCorrTrajData(td, timespan, framerate):
+def pcaCorrTrajData(td, timespan, framerate, randomize=False):
     data,names = preprocessPosition(td)
     pca = [fitPcaRotation(m, True, None) for m in data][:2]
-    corr = [np.abs(fftCorr(pca[0][2][:,i], pca[1][2][:,i])) for i in range(pca[0][2].shape[1])]
+    corr = [np.abs(fftCorr(pca[0][2][:,i], pca[1][2][:,i], randomize)) for i in range(pca[0][2].shape[1])]
     c = np.mean(corr,0)
     N = len(c)
     mid = int(N/2)
