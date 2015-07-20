@@ -9,22 +9,29 @@ import random
 t = None
 
 def corrOneFile(fn, timespan, method, randomize=False):
-    global t
-    td = dio.trajDataFromH5(fn)
-    print("Processing file '%s'" % fn, end='')
-    if method == 'log-energy':
-        x1, x2 = an.logEnergyPairFromTrajData(td)
-        c, t  = stats.fftCorrPair(x1, x2, timespan, td.framerate, randomize)
-    else:
-        c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
-        c = np.abs(c)
-    print (" [Ok]")
-    if fn.find('p9a') == -1:
-        return c[::-1]
-    return c
+    try:
+        global t
+        td = dio.trajDataFromH5(fn)
+        print("Processing file '%s'" % fn, end='')
+        if method == 'log-energy':
+            x1, x2 = an.logEnergyPairFromTrajData(td)
+            c, t  = stats.fftCorrPair(x1, x2, timespan, td.framerate, randomize)
+        else:
+            c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
+            c = np.abs(c)
+        print (" [Ok]")
+        if fn.find('p9a') == -1:
+            return c[::-1]
+        return c
+    except:
+        print("*** Warning: Could not process file")
+        return None
+
+
 
 def corrFiles(filelist, timespan, method, randomize=False):
     curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]
+    curves = [c for c in curves if not c is None]
     return np.mean(curves,0)
 
 def corrFolder(root, timespan, method, randomize=False):
