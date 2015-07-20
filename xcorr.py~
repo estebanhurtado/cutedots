@@ -31,27 +31,6 @@ def corrOneFile(fn, timespan, method, randomize=False):
     else:
         c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
         c = np.abs(c)
-=======
-    try:
-        global t
-        td = dio.trajDataFromH5(fn)
-        print("Processing file '%s'" % fn, end='')
-        if method == 'log-energy':
-            x1, x2 = an.logEnergyPairFromTrajData(td)
-            c, t  = stats.fftCorrPair(x1, x2, timespan, td.framerate, randomize)
-        else:
-            c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
-            c = np.abs(c)
-        print (" [Ok]")
-        if fn.find('p9a') == -1:
-            return c[::-1]
-        return c
-    except:
-        print("*** Warning: Could not process file")
-        return None
-
-
->>>>>>> origin/master
 
     try:
 
@@ -73,14 +52,12 @@ def corrOneFile(fn, timespan, method, randomize=False):
 
 def corrFiles(key, filelist, timespan, method, outfile, randomize=False):
     curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]
-<<<<<<< HEAD
+
     curves = [x for x in curves if (not x is None)]
     for fn, c, peak, peaktime in curves:
         outfile.write("%s,%s,%f, %f\n" % (fn, key, peaktime, peak))
     curves = [x[1] for x in curves]
-=======
-    curves = [c for c in curves if not c is None]
->>>>>>> origin/master
+
     return np.mean(curves,0)
 
 def corrFolder(root, timespan, method, randomize=False):

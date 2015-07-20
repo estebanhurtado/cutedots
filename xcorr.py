@@ -8,10 +8,11 @@ import random
 import sys
 import time
 import transform
+import segmentation as seg
+
 t = None
 
 def corrOneFile(fn, timespan, method, randomize=False):
-<<<<<<< HEAD
     global t
 
     try:
@@ -20,35 +21,46 @@ def corrOneFile(fn, timespan, method, randomize=False):
     except:
         print("*** Warning: could not open '%s'" % fn)
 
+    # Continuity segmentation
+    sg = seg.SegContinuousTrajs()
+    tdList = sg([td])
 
-    print("Low pass filtering '%s'" % fn)
-    transform.LpFilterTrajData(td, 10.0)
+    # Low pass filtering
+    for td in tdList:
+        print("\tLow pass filtering '%s'" % str(td.filename))
+        transform.LpFilterTrajData(td, 10.0)
 
-    print("Processing file '%s'" % fn, end='')
-    if method == 'log-energy':
-        x1, x2 = an.logEnergyPairFromTrajData(td)
-        c, t  = stats.fftCorrPair(x1, x2, timespan, td.framerate, randomize)
-    else:
-        c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
-        c = np.abs(c)
+    # Speaker segmentation
+    sg = seg.SegSpeakers()
+    tdList = sg(tdList)
 
-    try:
+    # Process segments
+    for td in tdList:
+        print("Processing file '%s'" % fn, end='')
+        if method == 'log-energy':
+            x1, x2 = an.logEnergyPairFromTrajData(td)
+            c, t  = stats.fftCorrPair(x1, x2, timespan, td.framerate, randomize)
+        else:
+            c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
+            c = np.abs(c)
 
-        if (len(c)/td.framerate) < (2*timespan):
-            print("\n\t*** Recording too short. Must be at least %.3f seconds." % (2*timespan))
-            return None
+        try:
 
-        print (" [Ok]")
+            if (len(c)/td.framerate) < (2*timespan):
+                print("\n\t*** Recording too short. Must be at least %.3f seconds." % (2*timespan))
+                return None
 
-        if fn.find('p9a') == -1:
-            c = c[::-1]
+            print (" [Ok]")
 
-        peak = c.max()
-        peaktime = (c.argmax() / td.framerate) - timespan
-        time.sleep(0)
-        return fn, c, peak, peaktime
-    except:
-        print("\n\t*** Error processing file.")
+            if fn.find('p9a') == -1:
+                c = c[::-1]
+
+            peak = c.max()
+            peaktime = (c.argmax() / td.framerate) - timespan
+            time.sleep(0)
+            return fn, c, peak, peaktime
+        except:
+            print("\n\t*** Error processing file.")
 
 def corrFiles(key, filelist, timespan, method, outfile, randomize=False):
     curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]

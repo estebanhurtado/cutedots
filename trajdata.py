@@ -109,6 +109,11 @@ class Traj:
         self.pointData = []
         self.beginFrame = beginFrame
 
+    def newFromFrameRange(self, begin, end):
+        newTraj = Traj(begin, self.name)
+        newTraj.pointData = self.pointData[begin:end]
+        return newTraj
+
     @property
     def endFrame(self): return self.beginFrame + len(self.pointData)
     @property
@@ -277,6 +282,18 @@ class TrajData(object):
         self.changed = False
         self.trash = []
         self.framePointCount = None
+
+    def newFromFrameRange(self, begin, end):
+        newtd = TrajData()
+        newtd.trajs = [t.newFromFrameRange(begin, end) for t in self.trajs]
+        newtd.filename = self.filename
+        newtd.framerate = self.framerate
+        newtd.changed = True
+        return newtd
+
+    def addIdxToFilename(self, idx):
+        root, ext = os.path.splitext(self.filename)
+        self.filename = root + ("_%d" % idx) + ext
 
     def clone(self, empty=False):
         newTd = TrajData()

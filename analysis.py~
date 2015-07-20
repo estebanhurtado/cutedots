@@ -15,6 +15,7 @@ import pylab as pl
 import numpy as np
 import scipy as sp
 import numpy.ma as ma
+import sys
 
 def speedFunc(samplerate):
     def func(data):
@@ -28,8 +29,18 @@ def separateComponents(d):
 def preprocessPosition(trajdata, flattenFunc=separateComponents, xyzNames=True):
     data, names = trajdata.posBySubj()
     if names[0] != names[1]:
-        raise RPlotError("Cannot preprocess positions. The two subjects " + \
-                         "don't have the same part labels.")
+        n0 = set(names[0])
+        n1 = set(names[1])
+        nameSet = n0.intersection(n1)
+        newTd = trajdata.clone(True)
+        newTd.trajs = [x for x in trajdata.trajs if x.name[:3] in nameSet]
+        print("\t*** Warning: name mismatch. Preserved %d of %d trajectories to fix" \
+                  % (len(newTd.trajs), len(trajdata.trajs)))
+        print(newTd.trajs)
+        sys.cout.flush
+        data, names = newTd.posBySubj()
+#        raise RPlotError("Cannot preprocess positions. The two subjects " + \
+#                         "don't have the same part labels.")
     data = [flattenFunc(d) for d in data]
     if xyzNames:
         newNames = [n + d for n in names[0] for d in ['X', 'Y', 'Z']]

@@ -104,6 +104,11 @@ class Traj:
 
     nameCounter = 0
 
+    def __init__(self, beginFrame, name=None):
+        self.name = ("tr_%d" % self.newCounter) if name is None else name
+        self.pointData = []
+        self.beginFrame = beginFrame
+
     @property
     def endFrame(self): return self.beginFrame + len(self.pointData)
     @property
@@ -145,11 +150,6 @@ class Traj:
                 or not self.subject in [1, 2]
         else:
             return not self.subject in [1, 2]
-
-    def __init__(self, beginFrame, name=None):
-        self.name = ("tr_%d" % self.newCounter) if name is None else name
-        self.pointData = []
-        self.beginFrame = beginFrame
 
     def __str__(self):
         return "Traj %s: %d - %d" % (self.name, self.beginFrame, self.endFrame)
@@ -277,6 +277,12 @@ class TrajData(object):
         self.changed = False
         self.trash = []
         self.framePointCount = None
+
+    def clone(self, empty=False):
+        newTd = TrajData()
+        newTd.trajs = [] if empty else self.trajs[:]
+        newTd.framerate = self.framerate
+        newTd.changed = True
 
     def asMaskedArray(self):
         minFr = self.minFrame
@@ -407,7 +413,8 @@ class TrajData(object):
             rest = [t for t in data if t.part != 'Hd']
             restNum = np.array([t.pointData for t in rest])
             if len(head) > 0:
-#                print(head)
+                minHeadLen = min([np.shape(d)[0] for d in head])
+                head = [d[:minHeadLen] for d in head]
                 headNum = np.mean(np.array(head), 0)
                 allnames.append(['Hd'] + [t.part + t.side for t in rest])
                 headShape = headNum.shape

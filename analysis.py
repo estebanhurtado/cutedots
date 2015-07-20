@@ -85,12 +85,16 @@ def energy(trajectories, transform=lambda x: x):
 def logEnergy(trajectories):
     return energy(trajectories, np.log)
 
-def logEnergyPairFromTrajData(td):
+
+def energyPairFromTrajData(td, transform=lambda x:x):
     subj1 = [t for t in td.trajs if t.subject == 1]
     subj2 = [t for t in td.trajs if t.subject == 2]
-    e1 = logEnergy(subj1)
-    e2 = logEnergy(subj2)
+    e1 = energy(subj1, transform)
+    e2 = energy(subj2, transform)
     return e1, e2
+
+def logEnergyPairFromTrajData(td):
+    return energyPairFromTrajData(td, np.log)
 
 def trajsToMaskedPosition(trajs):
     numFrames = max([t.endFrame for t in trajs])
