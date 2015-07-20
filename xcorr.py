@@ -11,6 +11,7 @@ import transform
 t = None
 
 def corrOneFile(fn, timespan, method, randomize=False):
+<<<<<<< HEAD
     global t
 
     try:
@@ -51,10 +52,12 @@ def corrOneFile(fn, timespan, method, randomize=False):
 
 def corrFiles(key, filelist, timespan, method, outfile, randomize=False):
     curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]
+
     curves = [x for x in curves if (not x is None)]
     for fn, c, peak, peaktime in curves:
         outfile.write("%s,%s,%f, %f\n" % (fn, key, peaktime, peak))
     curves = [x[1] for x in curves]
+
     return np.mean(curves,0)
 
 def corrFolder(root, timespan, method, randomize=False):
