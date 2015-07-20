@@ -22,6 +22,8 @@ from plotdialog import DataPlot
 import modelops
 import pystats
 import plots
+from xcorr import xcorr
+from logdialog import LogDialog
 
 def displayHtml(parent, title, html):
     win = QtGui.QDialog(parent)
@@ -130,6 +132,9 @@ class CuteDotsActions(QtCore.QObject):
                        self.pcaOutput)
         menu.addAction('PCA varimax',
                        self.pcaOutputVarimax)
+        menu.addSeparator()
+        menu.addAction('Correlate files in subfolders',
+                       self.correlateFolder)
 
     def plotMenu(self):
         bar = self.parent().menuBar()
@@ -351,7 +356,20 @@ class CuteDotsActions(QtCore.QObject):
         html = pystats.pcaVarimax(self.parent().data)
         displayHtml(self.parent(), "Principal component analysis", html)
 
+    def correlateFolder(self):
+        folder = QtGui.QFileDialog.getExistingDirectory\
+                (None, 'Select parent folder of .qtd files subfolders')
+        if folder == '':
+            return
 
+        logwin = LogDialog()
+        logwin.show()
+
+        xcorr(folder, 10, 'pca', True, False)
+        logwin.close()
+        del logwin
+        
+        
 # PLOTS
 
     @warnIfNoDataLoaded

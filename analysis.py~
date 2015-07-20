@@ -77,8 +77,8 @@ def logEnergy(trajectories):
 def logEnergyPairFromTrajData(td):
     subj1 = [t for t in td.trajs if t.subject == 1]
     subj2 = [t for t in td.trajs if t.subject == 2]
-    e1 = analysis.logEnergy(subj1)
-    e2 = analysis.logEnergy(subj2)
+    e1 = logEnergy(subj1)
+    e2 = logEnergy(subj2)
     return e1, e2
 
 def trajsToMaskedPosition(trajs):

@@ -22,6 +22,9 @@ from sys import float_info
 import os
 import errors
 
+# body part codes
+bpname = [ 'UB', 'LB', 'Kn', 'Ft', 'El', 'Hn', 'tr', 'Hd' ]
+
 def log(msg, lf=True):
     "Log a message"
     print(msg)
@@ -133,6 +136,15 @@ class Traj:
         except:
             pass
         return None
+
+    @property
+    def isUnlabeled(self):
+        if self.part != 'Hd':
+            return not self.part in bpname[:6] \
+                or not self.side in ['L', 'R'] \
+                or not self.subject in [1, 2]
+        else:
+            return not self.subject in [1, 2]
 
     def __init__(self, beginFrame, name=None):
         self.name = ("tr_%d" % self.newCounter) if name is None else name

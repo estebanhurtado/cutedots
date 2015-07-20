@@ -5,12 +5,24 @@ import analysis as an
 import pystats as stats
 import pylab as pl
 import random
-
+import sys
+import time
+import transform
 t = None
 
 def corrOneFile(fn, timespan, method, randomize=False):
     global t
-    td = dio.trajDataFromH5(fn)
+
+    try:
+        td = dio.trajDataFromH5(fn)
+        print(td)
+    except:
+        print("*** Warning: could not open '%s'" % fn)
+
+
+    print("Low pass filtering '%s'" % fn)
+    transform.LpFilterTrajData(td, 10.0)
+
     print("Processing file '%s'" % fn, end='')
     if method == 'log-energy':
         x1, x2 = an.logEnergyPairFromTrajData(td)
@@ -18,13 +30,31 @@ def corrOneFile(fn, timespan, method, randomize=False):
     else:
         c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
         c = np.abs(c)
-    print (" [Ok]")
-    if fn.find('p9a') == -1:
-        return c[::-1]
-    return c
 
-def corrFiles(filelist, timespan, method, randomize=False):
+    try:
+
+        if (len(c)/td.framerate) < (2*timespan):
+            print("\n\t*** Recording too short. Must be at least %.3f seconds." % (2*timespan))
+            return None
+
+        print (" [Ok]")
+
+        if fn.find('p9a') == -1:
+            c = c[::-1]
+
+        peak = c.max()
+        peaktime = (c.argmax() / td.framerate) - timespan
+        time.sleep(0)
+        return fn, c, peak, peaktime
+    except:
+        print("\n\t*** Error processing file.")
+
+def corrFiles(key, filelist, timespan, method, outfile, randomize=False):
     curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]
+    curves = [x for x in curves if (not x is None)]
+    for fn, c, peak, peaktime in curves:
+        outfile.write("%s,%s,%f, %f\n" % (fn, key, peaktime, peak))
+    curves = [x[1] for x in curves]
     return np.mean(curves,0)
 
 def corrFolder(root, timespan, method, randomize=False):
@@ -38,13 +68,64 @@ def corrFolder(root, timespan, method, randomize=False):
                 datafiles.setdefault(key, []).append(fullfn)
 
     curves = {}
-    for k in datafiles:
-        if randomize:
-            curves['boot'] = corrFiles(datafiles[k], timespan, method, randomize)
-        else:
-            curves[k] = corrFiles(datafiles[k], timespan, method, randomize)
+    with open(os.path.join(root, "data.csv"), "w") as outfile:
+        outfile.write("file,key,peaktime,peak\n")
+        for k in datafiles:
+            if randomize:
+                curves['boot'] = corrFiles(k, datafiles[k], timespan, method, outfile, randomize)
+            else:
+                curves[k] = corrFiles(k, datafiles[k], timespan, method, outfile, randomize)
 
     return curves
+
+colorIdx=0
+
+def xcorr(infolder, timespan, method, display, bootstrap):
+    global colorIdx
+    curves = corrFolder(infolder, timespan, method)
+
+    trialNum = 0
+
+    def trial():
+        global trialNum
+        trialNum += 1
+        print("BOOTSTRAP TRIAL %d" % trialNum)
+        return corrFolder(infolder, timespan, method, True)
+
+    boot = None
+
+    if bootstrap:
+        boot = [trial() for i in range(100)]
+
+    # Plot
+    names = list(curves.keys())
+    colors = ['b','g','r','c','m','y','k'][:len(names)]
+    names.sort()
+    colorIdx = 0
+    def makePlot(curves):
+        global colorIdx
+        for name in names:
+            if name == 'boot':
+                pl.plot(t, curves[name], 'k')
+            else:
+                lab = name.strip("\/")
+                pl.plot(t, curves[name], colors[colorIdx % len(names)], label=lab)
+            pl.xlabel("Delay (seconds)")
+            pl.ylabel("Correlation in PCA space")
+#            print("%s: (t,r) = %f, %f" % (name, t[curves[name].argmax()], curves[name].max()))
+            colorIdx += 1
+
+    makePlot(curves)
+
+    if bootstrap:
+        names = ['boot']
+        for curves in boot:
+            makePlot(curves)
+
+    pl.legend(loc='upper right')
+
+    if display:
+        pl.show()
 
 
 if __name__ == "__main__":
@@ -63,53 +144,4 @@ files. Then averages curves by subfolder in the
     parser.add_argument('--bootstrap', default=False)
     args = parser.parse_args()
 
-    curves = corrFolder(args.infolder, args.timespan, args.method)
-    print(curves)
-
-    trialNum = 0
-
-    def trial():
-        global trialNum
-        trialNum += 1
-        print("BOOTSTRAP TRIAL %d" % trialNum)
-        return corrFolder(args.infolder, args.timespan, args.method, True)
-
-    boot = None
-
-    if args.bootstrap:
-        boot = [trial() for i in range(100)]
-
-    # Plot
-    names = list(curves.keys())
-    colors = ['b','g','r','c','m','y','k'][:len(names)]
-
-    names.sort()
-
-    colorIdx = 0
-    def makePlot(curves):
-        global colorIdx
-        for name in names:
-            if name == 'boot':
-                pl.plot(t, curves[name], 'k')
-            else:
-                pl.plot(t, curves[name], colors[colorIdx % len(names)], label=name)
-            pl.xlabel("Delay (seconds)")
-            pl.ylabel("Correlation in PCA space")
-            print("%s: (t,r) = %f, %f" % (name, t[curves[name].argmax()], curves[name].max()))
-            colorIdx += 1
-    
-    makePlot(curves)
-
-    if args.bootstrap:
-        names = ['boot']
-        for curves in boot:
-            makePlot(curves)
-
-    pl.legend(loc='upper right')
-
-
-        
-
-    if args.display:
-        pl.show()
-
+    xcorr(args.infolder, args.timespan, args.method, args.display, args.bootstrap)
