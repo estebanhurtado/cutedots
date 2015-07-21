@@ -12,6 +12,32 @@
 # Cutedots. If not, see <http://http://opensource.org/licenses/rpl-1.5>.
 
 import numpy as np
+import scipy.signal as sig
 
-def LpFilter(trajdata, cutoff):
-    
+def filter(signal, Fc):
+    h = np.exp(-2.0 * np.pi * Fc)
+    a0 = 1.0 - h
+    b1 = h
+    y = [signal[0]]
+    for x in signal:
+        y.append( a0*x + b1*y[-1] )
+    return y[1:]
+
+def LpFilterComponent(data, Fc):
+    s = data[:]
+    for i in range(4):
+        s = filter(s, Fc)
+    return s
+
+def LpFilterTraj(traj, Fc):
+    data = np.array(traj.pointData)
+    for i in range(3):
+        data[:,i] = LpFilterComponent(data[:,i], Fc)
+    traj.pointData = [np.array(x) for x in data.tolist()]
+
+
+def LpFilterTrajData(trajdata, freq):
+    Fc = float(freq) / float(trajdata.framerate)
+    for traj in trajdata.trajs:
+        LpFilterTraj(traj, Fc)
+    trajdata.changed = True

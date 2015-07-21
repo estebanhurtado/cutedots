@@ -15,6 +15,9 @@ from __future__ import print_function
 import scipy.signal as sig
 import analysis as an
 import numpy as np
+import dotsio as dio
+import os
+import transform
 
 class Segmentation:
     def __init__(self, minTime=20.0):
@@ -25,16 +28,19 @@ class Segmentation:
         self.discardedSegments = 0
 
     def cut(self, td, breaks):
-        print(breaks)
+        breakTimes = np.array(breaks)/td.framerate
+        print("\tBreaks:", " ".join(["%.2f"% x for x in breakTimes]))
         newTdList = []
         idx = 0
+        print("\tActual segments:", end="")
         for begin, end in zip(breaks[:-1], breaks[1:]):
-            print("***", begin, end)
             if (float(end-begin) / td.framerate) >= self.minTime:
+                print(" %.2f-%.2f" % (begin/td.framerate, end/td.framerate), end="")
                 newtd = td.newFromFrameRange(begin, end)
                 newtd.addIdxToFilename(idx)
                 newTdList.append(newtd)
                 idx += 1
+        print("")
         return newTdList
 
     def __call__(self, tdList):
@@ -89,9 +95,55 @@ class SegSpeakers(Segmentation):
             if (x1 - x0) > maxIntFrames:
                 ignore.update([x0, x1])
                 i+=1
-        
+
         # Breaks
-        return set(zeroCrossings[0]).difference(ignore)        
+        return set(zeroCrossings[0]).difference(ignore).union([0, td.maxFrame])        
         
 
+def segmentFolder(infolder, outfolder, minTime, maxInterrupt):
+    for dirpath, dirnames, filenames in os.walk(infolder):
+        for fn in filenames:
+            if fn.endswith(".qtd"):
+                fullfn = os.path.join(dirpath, fn)
+                print("Reading '%s'" % fullfn)
+                td = dio.trajDataFromH5(fullfn)
+
+                # Continuity segmentation
+                sg = SegContinuousTrajs(minTime)
+                tdList = sg([td])
+
+                # Low pass filtering
+                for td in tdList:
+                    print("\tLow pass filtering '%s'" % str(td.filename))
+                    transform.LpFilterTrajData(td, 10.0)
+
+                # Speaker segmentation
+                sg = SegSpeakers(minTime, maxInterrupt)
+                tdList = sg(tdList)
+
+                # Write
+                print("\tWriting")
+                for td in tdList:
+                    relativeFn = td.filename[len(dirpath):].lstrip(os.path.sep)
+                    td.filename = os.path.join(outfolder, relativeFn)
+                    print("\t%s" % td.filename)
+
+                    if not os.path.exists(os.path.dirname(td.filename)):
+                        os.makedirs(os.path.dirname(td.filename))
+
+                    dio.trajDataSaveH5(td)
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--infolder', required=True)
+    parser.add_argument('--outfolder', required=True)
+    parser.add_argument('--mintime', default=20.0, type=float,
+                        help="Segments shorter than this are discarded (seconds)")
+    parser.add_argument('--maxinterrupt', default=4.0, type=float,
+                        help="Speaker changes lasting less than this are ignored")
+    args = parser.parse_args()
+
+    segmentFolder(args.infolder, args.outfolder, args.mintime, args.maxinterrupt)
 
