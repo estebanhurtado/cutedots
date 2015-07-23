@@ -82,7 +82,8 @@ def averageSameNameTrajectories(data, progress):
         else:
             indTrajs.setdefault(traj.name, []).append(traj)
     newTrajs = [] # List of new trajs
-    progress.setValue(0)
+    if not progress is None:
+        progress.setValue(0)
     # average each list of trajectories
     nameCount = 0
     for name, trajs in indTrajs.items():
@@ -109,10 +110,12 @@ def averageSameNameTrajectories(data, progress):
             else:           # Close current trajectory
                 current = None
         nameCount += 1
-        progress.setValue(int(100.0*nameCount / len(indTrajs.keys())))
+        if not progress is None:
+            progress.setValue(int(100.0*nameCount / len(indTrajs.keys())))
     newTrajs.extend(heads)
     data.trajs = newTrajs
-    progress.setValue(100)
+    if not progress is None:
+        progress.setValue(100)
     data.changed = True
 
 def fillGaps(data, maxGapTime, maxSampleTime, progress):

@@ -147,6 +147,12 @@ class Traj:
             pass
         return None
 
+    def setSubject(self, subject):
+        self.name = "%s%d" % (self.name[:3], subject)
+
+    def switchSubject(self):
+        self.setSubject(3 - self.subject)
+
     @property
     def isUnlabeled(self):
         if self.part != 'Hd':
@@ -310,6 +316,10 @@ class TrajData(object):
             data[t.beginFrame-minFr:t.endFrame-minFr] = ma.array(t.pointData)
             dataList.append(data)
         return ma.array(dataList)
+
+    def switchSubjects(self):
+        for t in self.trajs:
+            t.switchSubject()
 
     @property
     def numFrames(self):

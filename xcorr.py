@@ -17,25 +17,10 @@ def corrOneFile(fn, timespan, method, randomize=False):
 
     try:
         td = dio.trajDataFromH5(fn)
-        print(td)
     except:
         print("*** Warning: could not open '%s'" % fn)
 
-    # Continuity segmentation
-    sg = seg.SegContinuousTrajs()
-    tdList = sg([td])
-
-    # Low pass filtering
-    for td in tdList:
-        print("\tLow pass filtering '%s'" % str(td.filename))
-        transform.LpFilterTrajData(td, 10.0)
-
-    # Speaker segmentation
-    sg = seg.SegSpeakers()
-    tdList = sg(tdList)
-
-    # Process segments
-    for td in tdList:
+    try:
         print("Processing file '%s'" % fn, end='')
         if method == 'log-energy':
             x1, x2 = an.logEnergyPairFromTrajData(td)
@@ -44,32 +29,28 @@ def corrOneFile(fn, timespan, method, randomize=False):
             c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
             c = np.abs(c)
 
-        try:
+        if (len(c)/td.framerate) < (2*timespan):
+            print("\n\t*** Recording too short. Must be at least %.3f seconds." % (2*timespan))
+            return None
 
-            if (len(c)/td.framerate) < (2*timespan):
-                print("\n\t*** Recording too short. Must be at least %.3f seconds." % (2*timespan))
-                return None
+        print (" [Ok]")
 
-            print (" [Ok]")
-
-            if fn.find('p9a') == -1:
-                c = c[::-1]
-
-            peak = c.max()
-            peaktime = (c.argmax() / td.framerate) - timespan
-            time.sleep(0)
-            return fn, c, peak, peaktime
-        except:
-            print("\n\t*** Error processing file.")
+        peak = c.max()
+        peaktime = (c.argmax() / td.framerate) - timespan
+        time.sleep(0)
+        return fn, c, peak, peaktime, td.numFrames
+    except:
+        print("\n\t*** Error processing file.")
 
 def corrFiles(key, filelist, timespan, method, outfile, randomize=False):
     curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]
 
     curves = [x for x in curves if (not x is None)]
-    for fn, c, peak, peaktime in curves:
+    for fn, c, peak, peaktime, length in curves:
         outfile.write("%s,%s,%f, %f\n" % (fn, key, peaktime, peak))
-    curves = [x[1] for x in curves]
-
+    totalFrames = sum(x[4] for x in curves)
+    curves = [x[1] * float(x[4])/totalFrames for x in curves]
+    
     return np.mean(curves,0)
 
 def corrFolder(root, timespan, method, randomize=False):

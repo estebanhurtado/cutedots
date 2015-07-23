@@ -18,6 +18,9 @@ import numpy as np
 import dotsio as dio
 import os
 import transform
+import modelops
+import pylab as pl
+import math
 
 class Segmentation:
     def __init__(self, minTime=20.0):
@@ -26,6 +29,9 @@ class Segmentation:
         self.unmatchedTrajs = 0
         self.speakerChanges = 0
         self.discardedSegments = 0
+
+    def postProcess(self, td, begin, end):
+        pass
 
     def cut(self, td, breaks):
         breakTimes = np.array(breaks)/td.framerate
@@ -38,6 +44,7 @@ class Segmentation:
                 print(" %.2f-%.2f" % (begin/td.framerate, end/td.framerate), end="")
                 newtd = td.newFromFrameRange(begin, end)
                 newtd.addIdxToFilename(idx)
+                self.postProcess(newtd, begin, end)
                 newTdList.append(newtd)
                 idx += 1
         print("")
@@ -60,27 +67,45 @@ class SegContinuousTrajs(Segmentation):
         Segmentation.__init__(self, minTime)
 
     def findBreaks(self, td):
-        print("Continuity segmentation")
+        print("\tContinuity segmentation")
         beginFr = set([x.beginFrame for x in td.trajs])
         endFr = set([x.endFrame for x in td.trajs])
         return beginFr.union(endFr)
+
 
 class SegSpeakers(Segmentation):
     def __init__(self, minTime=20.0, maxInterrupt=4.0):
         Segmentation.__init__(self, minTime)
         self.maxInterrupt = maxInterrupt
 
+    def lpFilter(self, s, framerate):
+        a = math.exp(-1/(2*framerate))
+        b = 1.0 - a
+        y_1 = s[0]
+        out = []
+        for x0 in s:
+            y_1 = a*y_1 + b*x0
+            out.append(y_1)
+        return np.array(out)
+
+    def postProcess(self, td, begin, end):
+        e1, e2 = [e[begin:end] for e in self.energies]
+        e1Prop = np.sum(e1 > e2) / float(len(e1))
+        if e1Prop < 0.5:
+            td.switchSubjects()
+            print("(s2)", end="")
+        else:
+            print("(s1)", end="")
+
     def findBreaks(self, td):
-        print("Speaker segmentation")
+        print("\tSpeaker segmentation")
 
         # Extract filtered energy
-        N = int(td.framerate)
-        kernelSize = N if (N % 2) == 1 else N+1
-        kernel = np.ones(kernelSize) / float(kernelSize)
-        def transform(s):
-            return sig.fftconvolve(s, kernel, mode='same')
-        e1, e2 = an.energyPairFromTrajData(td, transform)
-
+        e1, e2 = an.energyPairFromTrajData(td, lambda s:s)
+        e1, e2 = [self.lpFilter(e[::-1], td.framerate) for e in [e1,e2]]
+        e1, e2 = [self.lpFilter(e[::-1], td.framerate) for e in [e1,e2]]
+        self.energies = e1, e2
+        
         # Find speaker changes
         sign = np.sign(e1 - e2)
         sign[np.where(sign == 0)] = 1
@@ -93,12 +118,14 @@ class SegSpeakers(Segmentation):
         for i in range(len(zeroCrossings)-1):
             x0, x1 = pairs[i]
             if (x1 - x0) > maxIntFrames:
+                print ("\tIgnoring: %.2f-%.2f" % (x0/td.framerate,x1/td.framerate))
                 ignore.update([x0, x1])
                 i+=1
 
         # Breaks
-        return set(zeroCrossings[0]).difference(ignore).union([0, td.maxFrame])        
-        
+        out = set(zeroCrossings[0]).difference(ignore).union([0, td.maxFrame])        
+        return out
+
 
 def segmentFolder(infolder, outfolder, minTime, maxInterrupt):
     for dirpath, dirnames, filenames in os.walk(infolder):
@@ -108,12 +135,19 @@ def segmentFolder(infolder, outfolder, minTime, maxInterrupt):
                 print("Reading '%s'" % fullfn)
                 td = dio.trajDataFromH5(fullfn)
 
+                # Preparation
+                print("\tAveraging same name trajectories")
+                modelops.averageSameNameTrajectories(td, None)
+
+                td.trajs = [t for t in td.trajs if t.numFrames > 0]
+
                 # Continuity segmentation
                 sg = SegContinuousTrajs(minTime)
                 tdList = sg([td])
 
                 # Low pass filtering
                 for td in tdList:
+                    td.trajs = [t for t in td.trajs if t.numFrames > 0]
                     print("\tLow pass filtering '%s'" % str(td.filename))
                     transform.LpFilterTrajData(td, 10.0)
 
@@ -122,9 +156,9 @@ def segmentFolder(infolder, outfolder, minTime, maxInterrupt):
                 tdList = sg(tdList)
 
                 # Write
-                print("\tWriting")
+                print("Writing")
                 for td in tdList:
-                    relativeFn = td.filename[len(dirpath):].lstrip(os.path.sep)
+                    relativeFn = td.filename[len(infolder):].lstrip(os.path.sep)
                     td.filename = os.path.join(outfolder, relativeFn)
                     print("\t%s" % td.filename)
 
