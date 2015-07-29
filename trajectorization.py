@@ -10,8 +10,8 @@ def metricEuclidean(gap):
 
 def metricEuclideanPredict(gap):
     def metric(a,b):
-        pa = a.predict( (-1.+gap)/2 )
-        pb = b.backPredict( (-1.-gap)/2 )
+        pa = np.array(a.predict( (-1.+gap)/2 ))
+        pb = np.array(b.backPredict( (-1.-gap)/2 ))
         return float(np.sum((pb-pa)**2)**0.5)
     return metric
 

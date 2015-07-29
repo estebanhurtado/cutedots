@@ -110,8 +110,8 @@ class Traj:
         self.beginFrame = beginFrame
 
     def newFromFrameRange(self, begin, end):
-        newTraj = Traj(begin, self.name)
-        newTraj.pointData = self.pointData[begin:end]
+        newTraj = Traj(0, self.name)
+        newTraj.pointData = self.pointData[begin-self.beginFrame:end-self.beginFrame]
         return newTraj
 
     @property
@@ -320,6 +320,15 @@ class TrajData(object):
     def switchSubjects(self):
         for t in self.trajs:
             t.switchSubject()
+
+    @property
+    def continuous(self):
+        N = self.trajs[0].numFrames
+        b = self.trajs[0].beginFrame
+        for t in self.trajs[1:]:
+            if t.numFrames != N or t.beginFrame != b:
+                return False
+        return True
 
     @property
     def numFrames(self):

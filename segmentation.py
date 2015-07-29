@@ -43,6 +43,16 @@ class Segmentation:
             if (float(end-begin) / td.framerate) >= self.minTime:
                 print(" %.2f-%.2f" % (begin/td.framerate, end/td.framerate), end="")
                 newtd = td.newFromFrameRange(begin, end)
+                try:
+                    assert newtd.continuous
+                except:
+                    print("*** Continuity error ***")
+                    print("Original:")
+                    for t in td.trajs:
+                        print("\t", t.name, "\t", t.beginFrame, "\t", t.numFrames)
+                    print("New", begin, end)
+                    for t in newtd.trajs:
+                        print("\t", t.name, "\t", t.beginFrame, "\t", t.numFrames)
                 newtd.addIdxToFilename(idx)
                 self.postProcess(newtd, begin, end)
                 newTdList.append(newtd)
@@ -157,6 +167,8 @@ def segmentFolder(infolder, outfolder, minTime, maxInterrupt):
 
                 # Write
                 print("Writing")
+                if len(tdList) == 0:
+                    print("\tNothing")
                 for td in tdList:
                     relativeFn = td.filename[len(infolder):].lstrip(os.path.sep)
                     td.filename = os.path.join(outfolder, relativeFn)

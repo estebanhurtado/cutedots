@@ -79,9 +79,13 @@ def fitPcaRotation(data, project=False, transform=None, rotation=varimax):
         return (np.dot(result[0],R), result[1])
 
 
+def pad(s):
+    N = len(s)
+    return np.pad(s, (0, N), 'constant', constant_values=(0,0))
+
 def fftCorr(a, b, randomize=False):
-    za = (a - a.mean()) / a.std()
-    zb = (b - b.mean()) / b.std()
+    za = pad((a - a.mean()) / a.std())
+    zb = pad((b - b.mean()) / b.std())
     if randomize:
         zb = np.roll(zb, np.random.randint(1, len(zb)))
     c = sig.fftconvolve(za, zb[::-1])
@@ -97,15 +101,27 @@ def fftCorrPair(a, b, timespan, framerate, randomize=False):
     t = np.arange(-span, span) / framerate
     return x, t
 
+def corrDeviations(da, db):
+    return np.corrcoef(da, db)[0,1]
+
+def statCorr(a, b, timespan, framerate, randomize=False):
+    da = a - a.mean()
+    db = b - b.mean()
+    center = len(a) // 2
+    framespan = int(framerate * timespan)
+    corr = np.zeros(2 * framespan + 1)
+    corr[framespan] = corrDeviations(da, db)
+    for i in range(1,(framespan+1)):
+        corr[framespan+i] = corrDeviations(da[i:], db[:-i])
+        corr[framespan-i] = corrDeviations(da[:-i], db[i:])
+    return corr
+
 def pcaCorrTrajData(td, timespan, framerate, randomize=False):
     data,names = preprocessPosition(td)
-    pca = [fitPcaRotation(m, True, None) for m in data][:2]
-    corr = [np.abs(fftCorr(pca[0][2][:,i], pca[1][2][:,i], randomize)) for i in range(pca[0][2].shape[1])]
+    pca = [fitPcaRotation(m, True, None)[2] for m in data][:2]
+    corrFunc = statCorr
+    corr = [np.abs(corrFunc(pca[0][:,i], pca[1][:,i], timespan, framerate, randomize)) for i in range(pca[0].shape[1])]
     c = np.mean(corr,0)
-    N = len(c)
-    mid = int(N/2)
-    span = int(framerate * timespan)
-    x = c[mid-span: mid+span]
-    t = np.arange(-span, span) / framerate
-    return x, t
+    t = np.linspace(-timespan, timespan, len(c))
+    return c, t
 

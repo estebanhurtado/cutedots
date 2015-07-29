@@ -9,6 +9,7 @@ import sys
 import time
 import transform
 import segmentation as seg
+import traceback
 
 t = None
 
@@ -41,6 +42,7 @@ def corrOneFile(fn, timespan, method, randomize=False):
         return fn, c, peak, peaktime, td.numFrames
     except:
         print("\n\t*** Error processing file.")
+        traceback.print_exc(file=sys.stdout)
 
 def corrFiles(key, filelist, timespan, method, outfile, randomize=False):
     curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]
@@ -136,7 +138,7 @@ files. Then averages curves by subfolder in the
     parser.add_argument('--infolder', default="data")
     parser.add_argument('--method', default="pca", choices=['pca', 'log-energy'])
     parser.add_argument('--display', default=True)
-    parser.add_argument('--timespan', default=10)
+    parser.add_argument('--timespan', default=10, type=float)
     parser.add_argument('--bootstrap', default=False)
     args = parser.parse_args()
 
