@@ -142,4 +142,5 @@ files. Then averages curves by subfolder in the
     parser.add_argument('--bootstrap', default=False)
     args = parser.parse_args()
 
-    xcorr(args.infolder, args.timespan, args.method, args.display, args.bootstrap)
+    import cProfile
+    cProfile.run("xcorr(args.infolder, args.timespan, args.method, args.display, args.bootstrap)", sort='cumulative')

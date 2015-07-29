@@ -291,7 +291,8 @@ class TrajData(object):
 
     def newFromFrameRange(self, begin, end):
         newtd = TrajData()
-        newtd.trajs = [t.newFromFrameRange(begin, end) for t in self.trajs]
+        newtd.trajs = [t.newFromFrameRange(begin, end) for t in self.trajs
+                       if t.hasFrame(begin) and t.hasFrame(end-1)]
         newtd.filename = self.filename
         newtd.framerate = self.framerate
         newtd.changed = True
@@ -323,6 +324,8 @@ class TrajData(object):
 
     @property
     def continuous(self):
+        if len(self.trajs) == 1:
+            return True
         N = self.trajs[0].numFrames
         b = self.trajs[0].beginFrame
         for t in self.trajs[1:]:

@@ -44,5 +44,4 @@ def main():
 #cProfile.run('main()', sort='cumulative')
 
 #from OpenGL.GLUT import glutInit
-
-#main()
+main()

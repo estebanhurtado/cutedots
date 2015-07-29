@@ -1,4 +1,5 @@
 from __future__ import print_function
+from numba import jit
 from analysis import preprocessPosition
 from scipy import linalg as la
 import scipy.signal as sig
@@ -101,24 +102,28 @@ def fftCorrPair(a, b, timespan, framerate, randomize=False):
     t = np.arange(-span, span) / framerate
     return x, t
 
-def corrDeviations(da, db):
-    return np.corrcoef(da, db)[0,1]
+@jit
+def corrDeviations(da, db, d2a, d2b):
+    return np.sum(da*db) / (np.sum(d2a)**0.5 * np.sum(d2b)**0.5)
 
-def statCorr(a, b, timespan, framerate, randomize=False):
+@jit
+def statCorr(a, b, timespan, framerate, randomize):
     da = a - a.mean()
     db = b - b.mean()
+    d2a = da**2
+    d2b = db**2
     center = len(a) // 2
     framespan = int(framerate * timespan)
     corr = np.zeros(2 * framespan + 1)
-    corr[framespan] = corrDeviations(da, db)
+    corr[framespan] = corrDeviations(da, db, d2a, d2b)
     for i in range(1,(framespan+1)):
-        corr[framespan+i] = corrDeviations(da[i:], db[:-i])
-        corr[framespan-i] = corrDeviations(da[:-i], db[i:])
+        corr[framespan+i] = corrDeviations(da[i:], db[:-i], d2a[i:], d2b[:-i])
+        corr[framespan-i] = corrDeviations(da[:-i], db[i:], d2a[:-i], d2b[i:])
     return corr
 
 def pcaCorrTrajData(td, timespan, framerate, randomize=False):
     data,names = preprocessPosition(td)
-    pca = [fitPcaRotation(m, True, None)[2] for m in data][:2]
+    pca = [fitPcaRotation(m, True, None, None)[2] for m in data][:2]
     corrFunc = statCorr
     corr = [np.abs(corrFunc(pca[0][:,i], pca[1][:,i], timespan, framerate, randomize)) for i in range(pca[0].shape[1])]
     c = np.mean(corr,0)
