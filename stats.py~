@@ -74,6 +74,9 @@ def pca(trajdata):
     eye = np.eye(trajdata.numTrajs)
     dirs = np.dot(eigvec[:2,:],eye)
 
+# soa = np.array( [ [0,0,3,2], [0,0,1,1],[0,0,9,9]]) 
+# X,Y,U,V = zip(*soa)
+
     names = np.array([t.name for t in trajdata.trajs])
     names = names[idx]
 
@@ -87,4 +90,14 @@ def pca(trajdata):
     pl.draw()
     pl.show()
 
+# ax = plt.gca()
+# ax.quiver(X,Y,U,V,angles='xy',scale_units='xy',scale=1)
+# ax.set_xlim([-1,10])
+# ax.set_ylim([-1,10])
+# plt.draw()
+# plt.show()
     
+
+    #print cm
+    #print eigvec
+    #print eigval
