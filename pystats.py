@@ -170,4 +170,4 @@ def windowedCorrPair(x1, x2, window, timespan, framerate, randomize):
             counts[off + framespan] += 1
 
     t = np.linspace(-timespan, timespan, len(result))
-    return result/counts, t
+    return result[::-1]/counts, t

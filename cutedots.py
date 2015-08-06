@@ -40,8 +40,8 @@ def main():
     cd.show()
     sys.exit(app.exec_())    
 
-#import cProfile
-#cProfile.run('main()', sort='cumulative')
+import cProfile
+cProfile.run('main()', sort='cumulative')
 
 #from OpenGL.GLUT import glutInit
 

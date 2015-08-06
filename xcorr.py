@@ -10,6 +10,8 @@ import time
 import transform
 import segmentation as seg
 import traceback
+from multiprocessing import Pool
+import h5py
 
 t = None
 
@@ -31,7 +33,12 @@ def corrOneFile(fn, timespan, method, randomize=False):
             c = np.abs(c)
         else: # method == 'windowed'
             x1, x2 = an.logEnergyPairFromTrajData(td)
-            c, t = stats.windowedCorrPair(x1, x2, 2.0, timespan, td.framerate, randomize)
+            c, t = stats.windowedCorrPair(x1, x2, 4.0, timespan, td.framerate, randomize)
+            with h5py.File(fn+".xcorr", "w") as h5f:
+                h5f['xcorr'] = c
+                h5f['time'] = t
+            c -= c.mean()
+            c /= c.std()
 
         if (len(c)/td.framerate) < (2*timespan):
             print("\n\t*** Recording too short. Must be at least %.3f seconds." % (2*timespan))
@@ -47,8 +54,15 @@ def corrOneFile(fn, timespan, method, randomize=False):
         print("\n\t*** Error processing file.")
         traceback.print_exc(file=sys.stdout)
 
+def corrFileAndStore(args):
+    fn, timespan, method, randomize = args
+    return corrOneFile(fn, timespan, method, randomize)
+
 def corrFiles(key, filelist, timespan, method, outfile, randomize=False):
-    curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]
+#    curves = [corrOneFile(fn, timespan, method, randomize) for fn in filelist]
+    p = Pool(8)
+    args = [(fn, timespan, method, randomize) for fn in filelist]
+    curves = p.map(corrFileAndStore, args)
 
     curves = [x for x in curves if (not x is None)]
     for fn, c, peak, peaktime, length in curves:
@@ -110,6 +124,7 @@ def xcorr(infolder, timespan, method, display, bootstrap):
                 pl.plot(t, curves[name], 'k')
             else:
                 lab = name.strip("\/")
+                t = np.linspace(-timespan, timespan, len(curves[name]))
                 pl.plot(t, curves[name], colors[colorIdx % len(names)], label=lab)
             pl.xlabel("Delay (seconds)")
             pl.ylabel("Correlation in PCA space")
@@ -145,5 +160,7 @@ files. Then averages curves by subfolder in the
     parser.add_argument('--bootstrap', default=False)
     args = parser.parse_args()
 
-    import cProfile
-    cProfile.run("xcorr(args.infolder, args.timespan, args.method, args.display, args.bootstrap)", sort='cumulative')
+#    import cProfile
+#    cProfile.run("xcorr(args.infolder, args.timespan, args.method, args.display, args.bootstrap)", sort='cumulative')
+    xcorr(args.infolder, args.timespan, args.method, args.display, args.bootstrap)
+
