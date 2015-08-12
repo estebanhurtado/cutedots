@@ -5,6 +5,7 @@ from scipy import linalg as la
 import scipy.signal as sig
 from numpy.linalg import svd
 import numpy as np
+import pylab as pl
 
 def fitPca(data, project=False, transform=None):
     "Variables in different rows"
@@ -155,6 +156,7 @@ def windowedCorrPair(x1, x2, window, timespan, framerate, randomize):
     sd2 = d2**2
     s1 = windowedSum(sd1, winsize) ** 0.5
     s2 = windowedSum(sd2, winsize) ** 0.5
+
     result = np.zeros(framespan * 2 + 1)
     counts = np.zeros(framespan * 2 + 1, dtype=int)
 

@@ -38,7 +38,7 @@ def corrOneFile(fn, timespan, method, randomize=False):
                 h5f['xcorr'] = c
                 h5f['time'] = t
             c -= c.mean()
-            c /= c.std()
+#            c /= c.std()
 
         if (len(c)/td.framerate) < (2*timespan):
             print("\n\t*** Recording too short. Must be at least %.3f seconds." % (2*timespan))
