@@ -1,0 +1,11 @@
+import nunmpy as np
+import pylab as pl
+
+s1 = np.random.randn(10000)
+s2 = np.random.randn(10000)
+
+ct = np.correlate(s1, s2, 'valid')
+
+pl.plot(ct)
+pl.show()
+
