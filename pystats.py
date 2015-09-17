@@ -6,6 +6,8 @@ from numpy.linalg import svd
 import numpy as np
 import transform
 import analysis
+import pylab as pl
+
 
 def fitPca(data, project=False, transform=None):
     "Variables in different rows"
@@ -193,3 +195,45 @@ def pcaCorrTrajData(td, timespan, framerate, randomize=False):
     t = np.linspace(-timespan, timespan, len(c))
     return c, t
 
+@jit
+def windowedSum(x, winsize):
+    numwin = len(x) - winsize
+    s = np.zeros(numwin)
+    s[0] = np.sum(x[:winsize])
+    for i in range(1, numwin):
+        s[i] = s[i-1] - x[i-1] + x[i-1+winsize]
+    return s
+
+@jit
+def windowedCorrPair(x1, x2, window, timespan, framerate, randomize):
+    framespan = int(timespan * framerate)
+    winsize = int(window * framerate)
+
+    N = len(x1)
+    if N < (winsize + 2 * framespan):
+        return None
+
+    numwin = N - winsize
+    d1 = x1 - x1.mean()
+    d2 = x2 - x2.mean()
+    sd1 = d1**2
+    sd2 = d2**2
+    s1 = windowedSum(sd1, winsize) ** 0.5
+    s2 = windowedSum(sd2, winsize) ** 0.5
+
+    result = np.zeros(framespan * 2 + 1)
+    counts = np.zeros(framespan * 2 + 1, dtype=int)
+
+    for off in range(-framespan, framespan+1):
+        off1, off2 = (off, 0) if off >= 0 else (0, -off)
+        M = N - winsize - max(off1, off2)
+        for i in range(M):
+            start1, start2 = off1 + i, off2 + i
+            end1, end2 = start1 + winsize, start2 + winsize
+            num = np.sum(d1[start1:end1] * d2[start2:end2])
+            den = s1[off1] * s2[off2]
+            result[off + framespan] += num / den
+            counts[off + framespan] += 1
+
+    t = np.linspace(-timespan, timespan, len(result))
+    return result[::-1]/counts, t

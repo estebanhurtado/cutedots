@@ -16,6 +16,7 @@ import numpy as np
 import scipy as sp
 import numpy.ma as ma
 import sys
+from numba import jit
 
 def speedFunc(samplerate):
     def func(data):
@@ -94,8 +95,13 @@ def energyPairFromTrajData(td, transform=lambda x:x):
     e2 = energy(subj2, transform)
     return e1, e2
 
+@jit
+def logFunc(x):
+    return np.log(x+0.001)
+
+@jit
 def logEnergyPairFromTrajData(td):
-    return energyPairFromTrajData(td, np.log)
+    return energyPairFromTrajData(td, logFunc)
 
 def trajsToMaskedPosition(trajs):
     numFrames = max([t.endFrame for t in trajs])
