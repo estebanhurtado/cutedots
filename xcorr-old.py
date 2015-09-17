@@ -26,9 +26,10 @@ def corrOneFile(fn, timespan, method, randomize=False):
         if method == 'log-energy':
             x1, x2 = an.logEnergyPairFromTrajData(td)
             c, t  = stats.fftCorrPair(x1, x2, timespan, td.framerate, randomize)
-        else:
+        elif method == 'pca':
             c, t = stats.pcaCorrTrajData(td, timespan, td.framerate, randomize)
             c = np.abs(c)
+            
 
         if (len(c)/td.framerate) < (2*timespan):
             print("\n\t*** Recording too short. Must be at least %.3f seconds." % (2*timespan))

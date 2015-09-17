@@ -45,4 +45,4 @@ def main():
 
 #from OpenGL.GLUT import glutInit
 
-#main()
+main()

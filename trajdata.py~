@@ -307,7 +307,6 @@ class TrajData(object):
         newTd.trajs = [] if empty else self.trajs[:]
         newTd.framerate = self.framerate
         newTd.changed = True
-        return newTd
 
     def asMaskedArray(self):
         minFr = self.minFrame

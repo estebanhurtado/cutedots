@@ -30,7 +30,7 @@ def markerSpeeds(d):
     compSpeeds = d[:, :-1, :] - d[:, 1:, :]
     return np.sqrt(np.sum(compSpeeds**2, 2))
 
-def preprocessPosition(trajdata, flattenFunc=separateComponents, xyzNames=True):
+def preprocessPosition(trajdata, flattenFunc=markerSpeeds, xyzNames=True):
     data, names = trajdata.posBySubj()
     if names[0] != names[1]:
         n0 = set(names[0])

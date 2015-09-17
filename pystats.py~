@@ -12,10 +12,8 @@ def fitPca(data, project=False, transform=None):
 
     if not transform is None:
         data = transform(data)
-
     cdata = data - data.mean(axis=0)
     R = np.cov(cdata, rowvar=0)
-
     eval, evec = la.eigh(R)
     idx = np.argsort(eval)[::-1]
     evec = evec[:,idx]
@@ -88,15 +86,11 @@ def pad(s):
     return np.pad(s, (0, N), 'constant', constant_values=(0,0))
 
 def fftCorr(a, b, randomize=False):
-#    cb, ca = sig.butter(2, (0.02, 0.1), 'bandpass')
-#    a, b = [sig.filtfilt(cb, ca, x, padtype=None) for x in [a, b]]
-#    za = ((a - a.mean()) / a.std())
-#    zb = ((b - b.mean()) / b.std())
+    za = ((a - a.mean()) / a.std())
+    zb = ((b - b.mean()) / b.std())
 #    if randomize:
  #       zb = np.roll(zb, np.random.randint(1, len(zb)))
-
-    na, nb = [x / np.sum(x) for x in [a,b]]
-    c = sig.fftconvolve(nb, na[::-1], 'valid')
+    c = sig.fftconvolve(zb, za[::-1], 'valid') / len(za)
 #    return c / (sig.triang(len(c)) * (len(za)-1.0))
     return c
 
@@ -106,9 +100,11 @@ def dcFilter(x, n):
     return x - dc
 
 def fftCorrPair(a, b, timespan, framerate, randomize=False):
-    trim = int(framerate * 2 * timespan + 0.5)
-    a = a[trim/2:-trim/2]
-    c = fftCorr(a,b,randomize)
+#    trim = int(framerate * 20 + 0.5)
+#    a = a[trim/2:-trim/2]
+    winsize = int(framerate * 4 + 0.5)
+    xa, xb = [dcFilter(x, winsize) for x in [a,b]]
+    c = fftCorr(xa,xb,randomize)
     N = len(c)
     mid = int(N/2)
     span = int(framerate * timespan)
@@ -135,61 +131,21 @@ def statCorr(a, b, timespan, framerate, randomize):
         corr[framespan-i] = corrDeviations(da[:-i], db[i:], d2a[:-i], d2b[i:])
     return corr
 
-
-def allCorr(a, b, timespan, framerate, randomize):
-    ca = np.hstack(([0], np.cumsum(a)))
-    cb = np.hstack(([0], np.cumsum(b)))
-    N = len(a)
-    M = int(framerate * timespan + 0.5)
-
-    corr = np.zeros(2 * M + 1)
-    count = np.zeros(2 * M + 1, int)
-
-    for i in range(0, N - M + 1, 100):
-        xa = a[i:i+M]
-        sa = ca[i+M] - ca[i]
-        for j in range(max(0,i-M), min(N-M, i+M)):
-            xb = b[j:j+M]
-            sb = cb[i+M] - cb[i]
-
-            idx = M+j-i
-            corr[idx] += np.sum(xa * xb) / (sa * sb)
-            count[idx] += 1
-
-    return corr / count
-
-def allCorr2(a, b, timespan, framerate, randomize):
-    ca = np.hstack(([0], np.cumsum(a)))
-    cb = np.hstack(([0], np.cumsum(b)))
-    N = len(a)
-    M = int(framerate * timespan + 0.5)
-
-    corr = np.zeros(2 * M + 1)
-    count = np.zeros(2 * M + 1, int)
-
-    for i in range(N - M + 1):
-        xa = a[i:i+M]
-        sa = ca[i+M] - ca[i]
-        for j in range(max(0,i-M), min(N-M, i+M)):
-            xb = b[j:j+M]
-            sb = cb[i+M] - cb[i]
-
-            idx = M+j-i
-            corr[idx] += np.sum(xa * xb) / (sa * sb)
-            count[idx] += 1
-
-    return corr / count
-
 def pcaCorrTrajData(td, timespan, framerate, randomize=False):
-    # Low pass filter 
+    # Low pass filter
     newTd = td.clone()
     transform.LpFilterTrajData(newTd, 10.0)
     data, names = analysis.preprocessPosition(newTd)
-#    pcaMain = [fitPcaRotation(np.transpose(m), True, None)[2][:,0] for m in data][:2]
-    e = [sum((x[:, 1:] - x[:, :-1]) ** 2,0) for x in data]
-#    speeds = [(x[1:] - x[:-1])*framerate  for x in pcaMain]
-#    e = [x**2 for x in speeds]
-    c = allCorr(e[0], e[1], timespan, framerate, randomize)
+    speed = analysis.speedFunc(newTd.framerate)
+    data = [np.array([speed(row) for row in subj]) for subj in data]
+    pca = [fitPcaRotation(m, True, None, None)[2] for m in data][:2]
+#    corrFunc = statCorr
+    corrFunc = fftCorrPair
+#    corr = [np.abs(corrFunc(pca[0][:,i], pca[1][:,i], timespan, framerate, randomize)) for i in range(pca[0].shape[1])]
+    corr = [np.abs(corrFunc(pca[0][:,i], pca[1][:,i], timespan, framerate, randomize)) for i in range(3)]
+#    print(np.shape(data))
+#    corr = [np.abs(corrFunc(data[0][i,:], data[1][i,:], timespan, framerate, randomize)) for i in range(data[0].shape[0])]
+    c = np.mean(corr,0)
     t = np.linspace(-timespan, timespan, len(c))
     return c, t
 
