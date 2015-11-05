@@ -5,6 +5,7 @@ import pylab as pl
 import numpy as np
 import scipy.signal as sig
 import transform
+import scipy.stats as st
 
 def plotEnergy(e1, e2):
     pl.subplot(3,1,1)
@@ -20,13 +21,16 @@ def xcorrPair2(e1, e2, framespan, winsize):
 def xcorrPair(e1, e2, M, W):
     N = len(e1)
     framesize = W + 2*M
-    for i in range(0, N - framesize + 1):
+    result = []
+    n = N - framesize + 1
+    for i in range(n):
         x2 = e2[i : i+framesize]
         x1 = e1[i+M : i+framesize-M] 
         #x1, x2 = [x / np.sum(x) for x in [x1, x2]]
         c = sig.fftconvolve(x2, x1[::-1], 'valid')
+        result.append(c)
 
-    return c
+    return sum(result) / n
 
 def xcorrFile(fn, timespan, wintime):
     print(fn)

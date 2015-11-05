@@ -7,12 +7,12 @@ def report(outfile, key, filenames, curves, samplerate):
     for fn, c in zip(filenames, curves):
         n = len(c)
         center = n/2
-        fr100 = int(0.1 * samplerate + 0.5)
+        fr100 = 0.1 * samplerate
         print("FR100 =", fr100)
         t0 = np.mean(c[center - fr100 : center + fr100 + 1])
         lisIm = np.mean(c[center + fr100 + 1 :])
         spkIm = np.mean(c[:center - fr100])
-        outfile.write("%s,%s,%f,%f,%f\n" % (fn, key, t0, lisIm, spkIm))
+        outfile.write("%s,%s,%f,%f,%f" % (fn, key, t0, lisIm, spkIm))
 
 def corrFiles(key, filelist, timespan, wintime, outfile):
     results = [xcorrFile(fn, timespan, wintime) for fn in filelist]
