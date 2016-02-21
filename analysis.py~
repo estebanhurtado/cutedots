@@ -16,6 +16,7 @@ import numpy as np
 import scipy as sp
 import numpy.ma as ma
 import sys
+from numba import jit
 
 def speedFunc(samplerate):
     def func(data):
@@ -30,7 +31,7 @@ def markerSpeeds(d):
     compSpeeds = d[:, :-1, :] - d[:, 1:, :]
     return np.sqrt(np.sum(compSpeeds**2, 2))
 
-def preprocessPosition(trajdata, flattenFunc=markerSpeeds, xyzNames=True):
+def preprocessPosition(trajdata, flattenFunc=separateComponents, xyzNames=True):
     data, names = trajdata.posBySubj()
     if names[0] != names[1]:
         n0 = set(names[0])
@@ -76,7 +77,7 @@ def energy(trajectories, transform=lambda x: x):
     maxFrame = max([t.endFrame for t in trajectories])
     energy = np.zeros(maxFrame-1) # Speed results
     for t in trajectories:
-        if t.numFrames >= 2:
+        if t.numFrames >= 2 and t.name[:2] != 'Kn' and t.name[:2] != 'Ft':
             trajSpeed = np.subtract(100*np.array(t.pointData[1:]),
                                     100*np.array(t.pointData[:-1]))  # find speed
             trajEnergy = np.sum(trajSpeed**2,1)
@@ -94,8 +95,13 @@ def energyPairFromTrajData(td, transform=lambda x:x):
     e2 = energy(subj2, transform)
     return e1, e2
 
+@jit
+def logFunc(x):
+    return np.log(x+0.001)
+
+@jit
 def logEnergyPairFromTrajData(td):
-    return energyPairFromTrajData(td, np.log)
+    return energyPairFromTrajData(td, logFunc)
 
 def trajsToMaskedPosition(trajs):
     numFrames = max([t.endFrame for t in trajs])

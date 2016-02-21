@@ -77,7 +77,10 @@ def energy(trajectories, transform=lambda x: x):
     maxFrame = max([t.endFrame for t in trajectories])
     energy = np.zeros(maxFrame-1) # Speed results
     for t in trajectories:
-        if t.numFrames >= 2:
+        if t.numFrames >= 2 \
+        and t.name[:2] != 'Kn' \
+        and t.name[:2] != 'Ft' \
+        and t.name[:2] != 'Hn':
             trajSpeed = np.subtract(100*np.array(t.pointData[1:]),
                                     100*np.array(t.pointData[:-1]))  # find speed
             trajEnergy = np.sum(trajSpeed**2,1)

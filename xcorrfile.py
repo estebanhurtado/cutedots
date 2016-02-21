@@ -29,8 +29,7 @@ def xcorrPair(e1, e2, M, W):
         #x1, x2 = [x / np.sum(x) for x in [x1, x2]]
         c = sig.fftconvolve(x2, x1[::-1], 'valid')
         result.append(c)
-
-    return sum(result) / n
+    return np.mean(result, 0)
 
 def xcorrFile(fn, timespan, wintime):
     print(fn)

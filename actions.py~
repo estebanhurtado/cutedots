@@ -22,7 +22,7 @@ from plotdialog import DataPlot
 import modelops
 import pystats
 import plots
-#from xcorr import xcorr
+from xcorr import xcorr
 from logdialog import LogDialog
 
 def displayHtml(parent, title, html):
@@ -365,7 +365,7 @@ class CuteDotsActions(QtCore.QObject):
         logwin = LogDialog()
         logwin.show()
 
-        #xcorr(folder, 10, 'pca', True, False)
+        xcorr(folder, 10, 'pca', True, False)
         logwin.close()
         del logwin
         
