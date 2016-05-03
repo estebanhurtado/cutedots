@@ -61,7 +61,5 @@ if __name__ == "__main__":
         f.create_dataset('t', data=np.array(t))
         group = f.create_group('curves')
         for k in curves:
-            print (k)
             group.create_dataset(k, data=np.array(curves[k]))
 
-    print("Finished!") 

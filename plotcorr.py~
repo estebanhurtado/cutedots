@@ -7,7 +7,7 @@ import scipy.stats as st
 from impmean import average
 
 BOOTN = 1000
-BOOTTOP = 55
+BOOTTOP = 65
 BOOTBOT = 45
 
 def boot(x):

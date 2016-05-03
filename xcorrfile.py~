@@ -43,7 +43,7 @@ def xcorrFile(fn, timespan, wintime, doPlot=False):
     center = len(c)/2
     t, corr = np.linspace(-timespan, timespan, len(c)), c[center-M:center+M+1]
     if doPlot:
-        print(corr)
+        print corr
         pl.plot(t, corr)
         pl.title(fn)
         pl.show()
