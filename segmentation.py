@@ -137,7 +137,7 @@ class SegSpeakers(Segmentation):
         return out
 
 
-def segmentFolder(infolder, outfolder, minTime, maxInterrupt):
+def segmentFolder(infolder, outfolder, minTime, maxInterrupt, doSpeakerSeg):
     for dirpath, dirnames, filenames in os.walk(infolder):
         for fn in filenames:
             if fn.endswith(".qtd"):
@@ -162,8 +162,10 @@ def segmentFolder(infolder, outfolder, minTime, maxInterrupt):
                     transform.LpFilterTrajData(td, 10.0)
 
                 # Speaker segmentation
-                sg = SegSpeakers(minTime, maxInterrupt)
-                tdList = sg(tdList)
+                if doSpeakerSeg:
+                    print("Speaker segmentation enabled.")
+                    sg = SegSpeakers(minTime, maxInterrupt)
+                    tdList = sg(tdList)
 
                 # Write
                 print("Writing")
@@ -185,11 +187,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--infolder', required=True)
     parser.add_argument('--outfolder', required=True)
+    parser.add_argument('--disable-speaker', default=False, action='store_true',
+                        help="Don't segment speaker turns")
     parser.add_argument('--mintime', default=20.0, type=float,
                         help="Segments shorter than this are discarded (seconds)")
     parser.add_argument('--maxinterrupt', default=4.0, type=float,
                         help="Speaker changes lasting less than this are ignored")
     args = parser.parse_args()
 
-    segmentFolder(args.infolder, args.outfolder, args.mintime, args.maxinterrupt)
+    segmentFolder(args.infolder, args.outfolder, args.mintime, args.maxinterrupt, not args.disable_speaker)
 

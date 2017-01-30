@@ -13,18 +13,14 @@ def batch(root, analyses, conditions):
             compute(root, condition, append, scale, dof)
 
 
-root = "~/Data/en_seg/"
 analyses = [
     ('.x', [-1.0, 0.0, 0.0], 1),
     ('.y', [0.0, 1.0, 0.0], 1),
-    ('', [-1.0, 1.0, 0.0], 2)
+#    ('', [-1.0, 1.0, 1.0], 3)
 ]
-conditions = ['E', 'N']
 
-batch(root, analyses, conditions)
-
-root = "~/Data/trust_seg/"
-conditions = ['trust', 'distrust', 'break']
+root = "~/Data/amigos-seg/"
+conditions = ['friends', 'strangers']
 
 batch(root, analyses, conditions)
 

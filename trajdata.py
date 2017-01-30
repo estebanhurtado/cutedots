@@ -45,6 +45,8 @@ class RawFrame:
         return self.data[index,:]
 
     def joinClosePoints(self, maxDist=1):
+        if self.numPoints == 0:
+            return
         # Initially all points are marked unique
         uniquePoint = [True] * self.numPoints
         sqDistance = spDistance.squareform(spDistance.pdist(self.data))

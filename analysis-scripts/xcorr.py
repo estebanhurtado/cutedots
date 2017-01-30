@@ -13,7 +13,6 @@ class MotionData:
     def readFromH5(self, fn):
         with h5py.File(fn, 'r') as f:
             trajs = f["trajectories"]
-            self.frameRate = 100
             if not 'frame_rate' in trajs.attrs:
                 print("Warning, no framerate specified in file. Default to 100.")
             else:
@@ -59,6 +58,14 @@ class MotionData:
                 
         for headName, trajs in heads.iteritems():
             d[headName] = np.mean(trajs, 0)
+        self.data = d
+
+    def avgAll(self, newName):
+        p = []
+        for name, traj in self.data.iteritems():
+            print ("NAME:", name)
+            p.append(traj)
+        d = {newName: np.mean(p, 0)}
         self.data = d
 
     def scale(self, sc):
@@ -138,7 +145,7 @@ class CorrCurves:
 
 
     @staticmethod
-    def fromMotionData(md, scale, span=20, step=10):
+    def fromMotionData(md, scale, span=20, step=12):
         md.avgHeads()
         speed = md.diff()
         s1, s2 = md.splitBySubj()
@@ -146,17 +153,23 @@ class CorrCurves:
         return CorrCurves.fromTwoMd(s1, s2, span, step)
     
     @staticmethod
-    def fromTwoMd(md1, md2, span=20, step=10):
+    def fromTwoMd(md1, md2, span=20, step=12):
+       # md1.frameRate = 120
+        #md2.frameRate = 120
         assert md1.frameRate == md2.frameRate
+        print ("Framerate:", md1.frameRate)
+        print ("Step:", step)
+        md1.avgAll('UBL')
+        md2.avgAll('UBL')
         cc = CorrCurves(frameRate=md1.frameRate / step)
         for name in md1.data:
             if name in md2.data:
                 cc.sab[name], cc.ssa[name], cc.ssb[name], cc.dof[name] = \
-                    CorrCurves.xcorrPair(md1.data[name], md2.data[name], span=20, step=10)
+                    CorrCurves.xcorrPair(md1.data[name], md2.data[name], span=20, step=step)
         return cc
 
     @staticmethod
-    def xcorrPair(sig1, sig2, span=20, step=10):
+    def xcorrPair(sig1, sig2, span=20, step=12):
         corrLen = 2 * span + 1
         sab = np.zeros(corrLen, dtype=float)
         ssa = np.zeros(corrLen, dtype=float)
@@ -182,7 +195,10 @@ class CorrCurves:
         sab = np.sum(c1*c2)
         ssa = np.sum(c1**2)
         ssb = np.sum(c2**2)
-        dof = globDof*(n-1)
+        try:
+            dof = globDof*(n-1)
+        except:
+            dof = 3000
         return sab, ssa, ssb, dof
 
     def averageParts(self, name="avg"):
@@ -199,13 +215,15 @@ class CorrCurves:
     def calcForName(self, name):
         return CorrCurves.calc(self.sab[name], self.ssa[name], self.ssb[name])
 
-    def plot(self):
+    def plot(self, step=12):
         dy = 0
         for name, sab in self.sab.iteritems():
             ssa = self.ssa[name]
             ssb = self.ssb[name]
             c = CorrCurves.calc(sab, ssa, ssb)
-            pl.plot(c, label=name)
+            t = np.linspace(0, step*len(c), len(c))
+            t -= np.mean(t)
+            pl.plot(t, c, 'm', linewidth=2, label=name)
 
     @staticmethod
     def bonferroni(p, alpha=0.05):
@@ -242,10 +260,11 @@ class CorrCurves:
             x = self.calcForName(name)
             print(name, "mean:", np.mean(x), "\tstd:", np.std(x))
 
-def corrFile(fn, filter, scale):
+def corrFile(fn, filter, scale, framerate):
     md = MotionData.fromH5(fn)
+    md.frameRate = framerate
     md = md.filterParts(filter)
-    cc = CorrCurves.fromMotionData(md, scale)
+    cc = CorrCurves.fromMotionData(md, scale, step=framerate/10)
     return cc
 
 if __name__ == "__main__":
@@ -257,8 +276,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--infolder', required=True)
     parser.add_argument('--outfile', required=True)
-    parser.add_argument('--scale', nargs=3, type=float, default=[-1.0, 1.0, 1.0])
+    parser.add_argument('--scale', nargs=3, type=float, default=[-1.0, -1.0, 1.0])
     parser.add_argument('--dof', type=int, default = 3)
+    parser.add_argument('--framerate', type=int, default=120)
     args = parser.parse_args()
     globDof = args.dof
 
@@ -269,7 +289,7 @@ if __name__ == "__main__":
             if fn.endswith('.qtd'):
                 print(fn)
                 filePath = os.path.join(args.infolder, fn)
-                curveList.append(corrFile(filePath, filter, args.scale))
+                curveList.append(corrFile(filePath, filter, args.scale, args.framerate))
 
 
     with open(args.outfile, "wb") as f:

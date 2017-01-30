@@ -4,6 +4,7 @@ import pylab as pl
 import os
 import random
 import numpy as np
+import numpy.ma as ma
 from scipy.stats import scoreatpercentile
 
 styles = ['b', 'r', 'y', 'g', 'k']
@@ -76,20 +77,47 @@ def ic(curve, dof):
     bottom = z - zc*std
     return np.tanh(top), np.tanh(bottom)
 
-def plotCurves(curves, bootn, name):
-    global stylen
-    style = styles[stylen]
-    stylen = (stylen + 1) % len(styles)
+def curvesdata(curves, bootn, name):
     avg = averageCurves(curves)
     fr = avg.frameRate
     avg = avg.calcForName('avg')
     n = len(avg)
     t = (np.arange(n) - n/2) * 0.1
-    pl.plot(t, np.zeros(len(t)), 'k-')
-    #top, bottom = bootstrap(curves, bootn)
     dof = np.sum([c.dof['avg'] for c in curves], 0)
     top, bottom = ic(avg, dof)
-    pl.fill_between(t, top, bottom, facecolor=style, label=name)
+
+    return name, t, avg, top, bottom 
+
+def plotCurves(c1, c2):
+    name1, t, avg1, top1, bottom1 = c1
+    name2, t, avg2, top2, bottom2 = c2
+    pl.plot(t, np.zeros(len(t)), 'k-')
+    s1 = ma.array(avg1)
+    s2 = ma.array(avg2)
+    zx1 = np.logical_and(np.greater_equal(top1, 0), np.less_equal(bottom1, 0))
+    zx2 = np.logical_and(np.greater_equal(top2, 0), np.less_equal(bottom2, 0))
+    ix = np.logical_or(
+            np.logical_and(
+                np.greater_equal(top1, top2),
+                np.less_equal(bottom1, top2)),
+            np.logical_and(
+                np.greater_equal(top1, bottom2),
+                np.less_equal(bottom1, bottom2)))
+    mask1 = np.logical_or(zx1, ix)
+    mask2 = np.logical_or(zx2, ix)
+
+    print mask1
+    print mask2
+    print zx1
+    print zx2
+    print ix
+
+    pl.plot(t, s1, "k--", linewidth=1)
+    pl.plot(t, s2, "k-", linewidth=1)
+    s1.mask = ix
+    s2.mask = ix
+    pl.plot(t, s1, "k--", linewidth=3, label=name1)
+    pl.plot(t, s2, "k-", linewidth=3, label=name2)
     pl.xlabel('Time (secs)')
     pl.ylabel("Pearson correlation")
 
@@ -99,9 +127,10 @@ if __name__ == "__main__":
     parser.add_argument('--ylim', nargs=2, type=float, default=None)
     parser.add_argument('--bootn', default=1000, type=int)
     parser.add_argument('--title', default="Cross-correlation")
-    parser.add_argument('infiles', nargs='+')
+    parser.add_argument('infiles', nargs=2)
     args = parser.parse_args()
 
+    plotdata = []
     all = []
     for fn in args.infiles:
         name, ext = os.path.splitext(fn)
@@ -110,10 +139,9 @@ if __name__ == "__main__":
             all.extend(curves)
             for c in curves:
                 c.printStats()
+            plotdata.append(curvesdata(curves, args.bootn, name))
+    plotCurves(plotdata[0], plotdata[1])
 
-            plotCurves(curves, args.bootn, name)
-
- #   plotCurves(all, args.bootn, 'all')
 
     if args.ylim is not None:
         pl.ylim(*(args.ylim))

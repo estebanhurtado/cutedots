@@ -77,13 +77,16 @@ class Trajectorizer:
                                  self.rdata[fr].data] )
                 continue
 
-            # Find distances from previous frame points to present
             prev = [t.getFrame(fr-1) for t in current]
             pres = [p for p in self.rdata[fr].data]
-            sdist = spd.cdist(prev,pres)
 
-            # Find matches
-            matches = Trajectorizer.findMatches(sdist, self.distanceThreshold)
+            if len(pres) > 0:
+                # Find distances from previous frame points to present
+                sdist = spd.cdist(prev,pres)
+                # Find matches
+                matches = Trajectorizer.findMatches(sdist, self.distanceThreshold)
+            else:
+                matches = []
 
             # Append matched points and keep track of matched trajs and points
             matchedPts = set()

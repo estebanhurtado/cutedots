@@ -7,6 +7,7 @@ import numpy as np
 from scipy.stats import scoreatpercentile
 
 styles = ['b', 'r', 'y', 'g', 'k']
+sttran = ['#0F0FFF', '#FF0F0F', '#FFFF0F', '#0FFFFF', '#0F0F0F']
 stylen = 0
 
 
@@ -71,7 +72,7 @@ def averageCurves(curves):
 def ic(curve, dof):
     z = np.arctanh(curve)
     std = 1.0 / np.sqrt(dof-2)
-    zc = 3.0308053371488461
+    zc = 4.1580
     top = z + zc*std
     bottom = z - zc*std
     return np.tanh(top), np.tanh(bottom)
@@ -79,6 +80,7 @@ def ic(curve, dof):
 def plotCurves(curves, bootn, name):
     global stylen
     style = styles[stylen]
+    stt = sttran[stylen]
     stylen = (stylen + 1) % len(styles)
     avg = averageCurves(curves)
     fr = avg.frameRate
@@ -89,16 +91,20 @@ def plotCurves(curves, bootn, name):
     #top, bottom = bootstrap(curves, bootn)
     dof = np.sum([c.dof['avg'] for c in curves], 0)
     top, bottom = ic(avg, dof)
-    pl.fill_between(t, top, bottom, facecolor=style, label=name)
-    pl.xlabel('Time (secs)')
+    pl.fill_between(t, top, bottom, facecolor=style, alpha=0.2, linewidth=0.0)
+    pl.plot(t, avg, style, linewidth=3, label=name)
+    pl.xlabel('Lag (seconds)')
     pl.ylabel("Pearson correlation")
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ylim', nargs=2, type=float, default=None)
+    parser.add_argument('--ylim', nargs=2, type=float, default=[-0.13, 0.13])
+    parser.add_argument('--xlim', nargs=2, type=float, default=[-1.5, 1.5])
     parser.add_argument('--bootn', default=1000, type=int)
     parser.add_argument('--title', default="Cross-correlation")
+    parser.add_argument('--outfile', default=None, type=str)
+    parser.add_argument('--no-legend', action='store_true')
     parser.add_argument('infiles', nargs='+')
     args = parser.parse_args()
 
@@ -118,6 +124,15 @@ if __name__ == "__main__":
     if args.ylim is not None:
         pl.ylim(*(args.ylim))
 
+    if args.xlim is not None:
+        pl.xlim(*(args.xlim))
+
     pl.title(args.title)
-    pl.legend()
-    pl.show()
+    if not args.no_legend:
+        pl.legend(loc='lower right')
+    pl.grid(True)
+
+    if args.outfile is not None:
+        pl.savefig(args.outfile, dpi=600)
+    else:
+        pl.show()
