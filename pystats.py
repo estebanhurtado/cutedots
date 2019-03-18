@@ -1,5 +1,5 @@
 from __future__ import print_function
-from numba import jit
+#from numba import jit
 from scipy import linalg as la
 import scipy.signal as sig
 from numpy.linalg import svd
@@ -118,11 +118,11 @@ def fftCorrPair(a, b, timespan, framerate, randomize=False):
     t = np.arange(-span, span) / framerate
     return x #, t
 
-@jit
+#@jit
 def corrDeviations(da, db, d2a, d2b):
     return np.sum(da*db) / (np.sum(d2a)**0.5 * np.sum(d2b)**0.5)
 
-@jit
+#@jit
 def statCorr(a, b, timespan, framerate, randomize):
     da = a - a.mean()
     db = b - b.mean()
@@ -195,7 +195,7 @@ def pcaCorrTrajData(td, timespan, framerate, randomize=False):
     t = np.linspace(-timespan, timespan, len(c))
     return c, t
 
-@jit
+#@jit
 def windowedSum(x, winsize):
     numwin = len(x) - winsize
     s = np.zeros(numwin)
@@ -204,7 +204,7 @@ def windowedSum(x, winsize):
         s[i] = s[i-1] - x[i-1] + x[i-1+winsize]
     return s
 
-@jit
+#@jit
 def windowedCorrPair(x1, x2, window, timespan, framerate, randomize):
     framespan = int(timespan * framerate)
     winsize = int(window * framerate)

@@ -16,8 +16,8 @@
 
 import os
 
-from PySide import QtGui, QtOpenGL, QtCore
-from PySide.QtCore import Qt
+from PyQt5 import QtWidgets, QtOpenGL, QtCore, QtGui
+from PyQt5.QtCore import Qt
 import dotsio
 import modelops
 #import rstats
@@ -77,7 +77,7 @@ def helptext():
     return text
 
 
-class CuteDotsMainWindow(QtGui.QMainWindow):
+class CuteDotsMainWindow(QtWidgets.QMainWindow):
     "Qt object for Cutedots main window."
 
     @property
@@ -89,7 +89,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         return self.gl.dots.model.data
 
     def __init__(self):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.setWindowIcon(QtGui.QIcon('icon.png'))
         self.cdActions = actions.CuteDotsActions(self)
         self.initUI()
@@ -98,15 +98,15 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     def initUI(self):
         self.initMenu()
         # Widgets
-        self.mainWidget = QtGui.QWidget(self)        # Main widget
+        self.mainWidget = QtWidgets.QWidget(self)        # Main widget
         self.gl = GLWidget(self)                     # 3D view
         self.transport = TransportBar(self, self.gl) # TransportBar
-        self.help = QtGui.QLabel(helptext(), self)   # Keyboard help text
+        self.help = QtWidgets.QLabel(helptext(), self)   # Keyboard help text
         # Layout
         self.setCentralWidget(self.mainWidget)
-        self.mainLayout = QtGui.QVBoxLayout(self.mainWidget)
-        self.hwidget = QtGui.QWidget(self)
-        self.hlayout = QtGui.QHBoxLayout(self.hwidget)
+        self.mainLayout = QtWidgets.QVBoxLayout(self.mainWidget)
+        self.hwidget = QtWidgets.QWidget(self)
+        self.hlayout = QtWidgets.QHBoxLayout(self.hwidget)
         self.hlayout.addWidget(self.gl, 1)
         self.hlayout.addWidget(self.help)
         self.mainLayout.addWidget(self.hwidget, 1)
@@ -138,7 +138,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         "Decorator that throws a warning if no data is already loaded."
         def deco(self, *args, **kargs):
             if self.data is None:
-                QtGui.QMessageBox.warning(self, 'Error', 'No data loaded yet.')
+                QtWidgets.QMessageBox.warning(self, 'Error', 'No data loaded yet.')
                 return
             method(self, *args, **kargs)
         return deco
@@ -167,7 +167,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     # End decorators #
 
     def mkProgress(self, task_descript, total=100, cancelbtn=""):
-        progress = QtGui.QProgressDialog(
+        progress = QtWidgets.QProgressDialog(
             task_descript, cancelbtn, 0, total, self)
         progress.setWindowModality(Qt.WindowModal)
         progress.setWindowTitle("Cutedots")
@@ -183,7 +183,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
     #########
 
     def displayAboutDlg(self):
-        QtGui.QMessageBox.about(self, 'About', about_text)
+        QtWidgets.QMessageBox.about(self, 'About', about_text)
  
     @updateStatus
     @updateNumFrames
@@ -208,7 +208,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
 
     @ifDataLoaded
     def saveFileAs(self):
-        fn,x = QtGui.QFileDialog.getOpenFileName(None, 'Save motion data file')
+        fn,x = QtWidgets.QFileDialog.getOpenFileName(None, 'Save motion data file')
         if fn == '':
             return
         self.data.changed = True
@@ -218,7 +218,7 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
 
     @warnIfNoDataLoaded
     def saveSequence(self):
-        folder = QtGui.QFileDialog.getExistingDirectory(
+        folder = QtWidgets.QFileDialog.getExistingDirectory(
             self, 'Choose a folder to save image files for the video sequence')
         if folder == '':
             return
@@ -251,11 +251,11 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
         if self.data is not None:
             changed = self.data.changed
             if changed:
-                reply = QtGui.QMessageBox.question(
+                reply = QtWidgets.QMessageBox.question(
                     self, 'Message', "Are you sure you want to lose unsaved data?", 
-                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.Cancel,
-                    QtGui.QMessageBox.Cancel)
-                if reply == QtGui.QMessageBox.Cancel:
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Cancel,
+                    QtWidgets.QMessageBox.Cancel)
+                if reply == QtWidgets.QMessageBox.Cancel:
                     return
             self.data.changed = False
         self.close()
@@ -264,10 +264,10 @@ class CuteDotsMainWindow(QtGui.QMainWindow):
 
     def askSave(self):
         if self.data is not None and self.data.changed:
-            answer = QtGui.QMessageBox.question(
+            answer = QtWidgets.QMessageBox.question(
                 self, "Exit", "Data modified. Save to disk?",
-                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            return answer == QtGui.QMessageBox.Yes
+                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            return answer == QtWidgets.QMessageBox.Yes
         return False
 
     def closeEvent(self, event):

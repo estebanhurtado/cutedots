@@ -1,7 +1,7 @@
 from trajdata import *
 import scipy.spatial.distance as spd
 import numpy as np
-from PySide import QtCore
+from PyQt5 import QtCore
 
 def metricEuclidean(gap):
     def metric(a,b):

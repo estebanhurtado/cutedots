@@ -16,8 +16,8 @@ DISPLAY_WIDTH = 1024
 DISPLAY_HEIGHT = 600
 
 
-from PySide import QtGui, QtOpenGL, QtCore
-from PySide.QtCore import Qt
+from PyQt5 import QtWidgets, QtOpenGL, QtCore
+from PyQt5.QtCore import Qt
 import dotsdisplay as dots
 import time
 
@@ -86,9 +86,9 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.parentWindow.updateStatus()
         self.parentWindow.updateFrame()
 
-class FrameSpin(QtGui.QSpinBox):
+class FrameSpin(QtWidgets.QSpinBox):
     def __init__(self, parent):
-        QtGui.QSpinBox.__init__(self, parent)
+        QtWidgets.QSpinBox.__init__(self, parent)
         self.setWrapping(True)
         self.setAccelerated(True)
 
@@ -99,9 +99,9 @@ class FrameSpin(QtGui.QSpinBox):
         return "%02d':%02d\".%02d" % (mins, secs, frames)
 
 
-class TransportBar(QtGui.QWidget):
+class TransportBar(QtWidgets.QWidget):
     def __init__(self, parent, glwidget):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.mainWindow = parent
         self.gl = glwidget
         self.playing = False
@@ -115,28 +115,28 @@ class TransportBar(QtGui.QWidget):
 
     def initUI(self):
         # Get play/pause icons
-        standardIcon = QtGui.qApp.style().standardIcon
-        self.iconPlay = standardIcon(QtGui.QStyle.SP_MediaPlay)
-        self.iconPause = standardIcon(QtGui.QStyle.SP_MediaPause)
+        standardIcon = QtWidgets.qApp.style().standardIcon
+        self.iconPlay = standardIcon(QtWidgets.QStyle.SP_MediaPlay)
+        self.iconPause = standardIcon(QtWidgets.QStyle.SP_MediaPause)
         # Widgets
-        self.playButton = QtGui.QPushButton(self.iconPlay, '', self)
-        s1 = self.speed1xButton = QtGui.QToolButton(self)
+        self.playButton = QtWidgets.QPushButton(self.iconPlay, '', self)
+        s1 = self.speed1xButton = QtWidgets.QToolButton(self)
         s1.setText('1x')
-        s2 = self.speed4xButton = QtGui.QToolButton(self)
+        s2 = self.speed4xButton = QtWidgets.QToolButton(self)
         s2.setText('4x')
-        s3 = self.speed16xButton = QtGui.QToolButton(self)
+        s3 = self.speed16xButton = QtWidgets.QToolButton(self)
         s3.setText('16x')
         self.frameSpin = FrameSpin(self)
-        self.frameSlider = QtGui.QSlider(Qt.Horizontal, self)
-        self.labelTotal = QtGui.QLabel(self)
+        self.frameSlider = QtWidgets.QSlider(Qt.Horizontal, self)
+        self.labelTotal = QtWidgets.QLabel(self)
         # Button group
-        buttonGroup = QtGui.QButtonGroup(self)
+        buttonGroup = QtWidgets.QButtonGroup(self)
         for button in [s1, s2, s3]:
             button.setCheckable(True)
             buttonGroup.addButton(button)
         s1.setChecked(True)
         # Layouts
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.addWidget(self.playButton)
         layout.addWidget(self.speed1xButton)
         layout.addWidget(self.speed4xButton)
@@ -166,7 +166,7 @@ class TransportBar(QtGui.QWidget):
         self.timer.start(25)
 
     @setReference
-    def setSpeed(self):
+    def setSpeed(self, x):
         if self.speed1xButton.isChecked():
             self.playSpeed = 1.0
         elif self.speed4xButton.isChecked():

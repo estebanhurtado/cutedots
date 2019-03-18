@@ -13,7 +13,7 @@
 
 import os
 os.environ['QT_API'] = 'pyside' 
-from PySide import QtGui
+from PyQt5 import QtWidgets
 import matplotlib.pyplot as pl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as PLCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as PLToolbar
@@ -24,7 +24,7 @@ import numpy as np
 
 mpl.rcParams['backend.qt4'] = 'PySide'
 
-class PlotDialog(QtGui.QDialog):
+class PlotDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(PlotDialog, self).__init__(parent)
 

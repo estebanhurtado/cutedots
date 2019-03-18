@@ -162,9 +162,9 @@ def readFrameFromArray2(line_array, line_number):
     start = 2
     # read the indices in the array of the markers present in this frame
     for i in range(start, len(line_array)):
-        if (line_array[i] and line_array[i] != "\r\n"):
+        if (line_array[i] and (line_array[i] not in ["\r\n","\r","\n"])):
             points.append(i)
-    data = np.zeros((len(points)/3, 4), dtype = np.float32)
+    data = np.zeros((int(len(points)/3), 4), dtype = np.float32)
     # print ("frame number: " + str(line_number))
     # print ("line_array: " + str(line_array))
     # print ("points: " +  str(points))

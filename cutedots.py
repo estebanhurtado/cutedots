@@ -16,24 +16,24 @@
 
 import traceback
 import errors
-from PySide import QtGui
+from PyQt5 import QtWidgets
 from mainwindow import CuteDotsMainWindow
 import sys
 import mpl_toolkits
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     cd = CuteDotsMainWindow()
 
     def excepthook(extype, exval, tb):
         message = str(exval)
         if isinstance(exval, errors.Warning):
-            QtGui.QMessageBox.warning(cd, "Warning", message)
+            QtWidgets.QMessageBox.warning(cd, "Warning", message)
         else:
             ex = traceback.format_exception(extype, exval, tb, 10)
             message = "Unknown error:\n\n" + message + \
                       "\n\n" + "Technical details:\n\n" + ''.join(ex)
-            QtGui.QMessageBox.critical(cd, "Error", message)
+            QtWidgets.QMessageBox.critical(cd, "Error", message)
 
     sys.excepthook = excepthook
 

@@ -13,8 +13,8 @@
 # You should have received a copy of the Reciprocal Public License along with
 # Cutedots. If not, see <http://opensource.org/licenses/rpl-1.5>.
 
-from PySide import QtCore, QtGui
-from PySide.QtWebKit import QWebView
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 import preprocess
 import transform
 import analysis
@@ -217,7 +217,7 @@ class CuteDotsActions(QtCore.QObject):
     @updateDisplay
     @updateStatus
     def openDataFile(self):
-        fn, x = QtGui.QFileDialog.getOpenFileName\
+        fn, x = QtWidgets.QFileDialog.getOpenFileName\
                 (None, 'Open a CuteDots motion data file')
         if fn == '':
             return
@@ -226,7 +226,7 @@ class CuteDotsActions(QtCore.QObject):
     @updateDisplay
     @updateStatus
     def importC3D(self):
-        fn,x = QtGui.QFileDialog.getOpenFileName(None, 'Import a C3D data file')
+        fn,x = QtWidgets.QFileDialog.getOpenFileName(None, 'Import a C3D data file')
         if fn == '':
             return
         progress = self.parent().mkProgress("Importing...")
@@ -236,7 +236,7 @@ class CuteDotsActions(QtCore.QObject):
     @updateDisplay
     @updateStatus
     def importCSV(self):
-        fn,x = QtGui.QFileDialog.getOpenFileName(None, 'Import a CSV data file')
+        fn,x = QtWidgets.QFileDialog.getOpenFileName(None, 'Import a CSV data file')
         if fn == '':
             return
         progress = self.parent().mkProgress("Importing...")
@@ -246,7 +246,7 @@ class CuteDotsActions(QtCore.QObject):
     @updateDisplay
     @updateStatus
     def importCSV2(self):
-        fn,x = QtGui.QFileDialog.getOpenFileName(None, 'Import a CSV2 data file')
+        fn,x = QtWidgets.QFileDialog.getOpenFileName(None, 'Import a CSV2 data file')
         if fn == '':
             return
         progress = self.parent().mkProgress("Importing...")
@@ -357,7 +357,7 @@ class CuteDotsActions(QtCore.QObject):
         displayHtml(self.parent(), "Principal component analysis", html)
 
     def correlateFolder(self):
-        folder = QtGui.QFileDialog.getExistingDirectory\
+        folder = QtWidgets.QFileDialog.getExistingDirectory\
                 (None, 'Select parent folder of .qtd files subfolders')
         if folder == '':
             return

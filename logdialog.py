@@ -11,7 +11,7 @@
 # You should have received a copy of the Reciprocal Public License along with
 # Cutedots. If not, see &lt;http://opensource.org/licenses/rpl-1.5&gt;.
 
-from PySide import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 import sys
 
 class TextStream(QtCore.QObject):
@@ -20,13 +20,13 @@ class TextStream(QtCore.QObject):
         self.textWritten.emit(str(text))
 
 
-class LogDialog(QtGui.QDialog):
+class LogDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(LogDialog, self).__init__(parent)
-        self.textEdit = QtGui.QTextEdit(self)
+        self.textEdit = QtWidgets.QTextEdit(self)
 
         # layout
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.textEdit)
         self.setLayout(layout)
         self.resize(800, 600)
@@ -43,10 +43,10 @@ class LogDialog(QtGui.QDialog):
 #        sys.stderr.write("Append %s\n" % text)
 
         cursor = self.textEdit.textCursor()
-        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.movePosition(QtWidgets.QTextCursor.End)
         cursor.insertText(text)
         self.textEdit.ensureCursorVisible()
-        QtGui.QApplication.instance().processEvents()
+        QtWidgets.QApplication.instance().processEvents()
 
 
 

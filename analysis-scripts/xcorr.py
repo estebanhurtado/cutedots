@@ -22,11 +22,11 @@ class MotionData:
                 tr = trajs[trName]
                 bframe = tr.attrs['begin_frame']
                 if bframe != 0:
-                    print("Error. Trajectory", trName, "begins at frame", tr.attrs['bframe'])
+                    print("Error. Trajectory", trName, "begins at frame", tr.attrs['begin_frame'])
                     return None
                 self.data[tr.attrs['name']] = np.array(tr)
             trajLen = None
-            for name, traj in self.data.iteritems():
+            for name, traj in self.data.items():
                 if trajLen is None:
                     trajLen = traj.shape[0]
                 else:
@@ -42,50 +42,54 @@ class MotionData:
 
     def diff(self):
         md = MotionData(self.data, self.frameRate)
-        for name, traj in self.data.iteritems():
+        for name, traj in self.data.items():
             md.data[name] = traj[1:] - traj[:-1]
         return md
 
     def avgHeads(self):
         d = {}
         heads = {}
-        for name, traj in self.data.iteritems():
+        for name, traj in self.data.items():
             if name[:2] == 'Hd':
                 k = 'Hd_' + name[3]
                 heads.setdefault(k, []).append(traj)
             else:
                 d[name] = traj
                 
-        for headName, trajs in heads.iteritems():
+        for headName, trajs in heads.items():
             d[headName] = np.mean(trajs, 0)
         self.data = d
 
     def avgAll(self, newName):
         p = []
-        for name, traj in self.data.iteritems():
+        for name, traj in self.data.items():
             print ("NAME:", name)
             p.append(traj)
         d = {newName: np.mean(p, 0)}
         self.data = d
 
     def scale(self, sc):
-        for name, traj in self.data.iteritems():
+        for name, traj in self.data.items():
             self.data[name] *= sc
 
     def splitBySubj(self):
         subjs = {}
-        for name, traj in self.data.iteritems():
+        print(self.data)
+        for name, traj in self.data.items():
+            name = str(name)
+            print(name)
             subject = name[3]
             if not subject in subjs:
                 subjs[subject] = MotionData({}, self.frameRate)
             subjs[subject].data[name[:3]] = traj
+        print(subjs)
         return subjs['1'], subjs['2']
 
     def filterParts(self, names):
         md = MotionData({}, self.frameRate)
-        for name, traj in self.data.iteritems():
+        for name, traj in self.data.items():
             for n in names:
-                if name.startswith(n):
+                if str(name).startswith(n):
                     md.data[name] = traj
         return md
 
@@ -146,6 +150,7 @@ class CorrCurves:
 
     @staticmethod
     def fromMotionData(md, scale, span=20, step=12):
+        print(md)
         md.avgHeads()
         speed = md.diff()
         s1, s2 = md.splitBySubj()
@@ -217,7 +222,7 @@ class CorrCurves:
 
     def plot(self, step=12):
         dy = 0
-        for name, sab in self.sab.iteritems():
+        for name, sab in self.sab.items():
             ssa = self.ssa[name]
             ssb = self.ssb[name]
             c = CorrCurves.calc(sab, ssa, ssb)
@@ -237,7 +242,7 @@ class CorrCurves:
 
     def pVal(self):
         p = {}
-        for name, sab in self.sab.iteritems():
+        for name, sab in self.sab.items():
             ssa = self.ssa[name]
             ssb = self.ssb[name]
             dof = self.dof[name]
@@ -251,7 +256,7 @@ class CorrCurves:
 
     def plotP(self):
         pVals = self.pVal()
-        for name, p in pVals.iteritems():
+        for name, p in pVals.items():
             pl.plot(p, label=name)
             print(np.sum(p<0.05) / float(len(p)))
 

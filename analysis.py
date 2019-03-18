@@ -16,7 +16,7 @@ import numpy as np
 import scipy as sp
 import numpy.ma as ma
 import sys
-from numba import jit
+#from numba import jit
 
 def speedFunc(samplerate):
     def func(data):
@@ -98,11 +98,11 @@ def energyPairFromTrajData(td, transform=lambda x:x):
     e2 = energy(subj2, transform)
     return e1, e2
 
-@jit
+#@jit
 def logFunc(x):
     return np.log(x+0.001)
 
-@jit
+#@jit
 def logEnergyPairFromTrajData(td):
     return energyPairFromTrajData(td, logFunc)
 
