@@ -228,7 +228,7 @@ def logEnergyCorr(plotDialog):
     ax = plotDialog.figure.add_subplot(111)
     N = len(c)
     mid = int(N/2)
-    span = trajdata.framerate * 10
+    span = int(trajdata.framerate * 10)
     x = c[mid-span:mid+span]
     t = np.arange(-span, span) / trajdata.framerate
     ax.plot(t,x)

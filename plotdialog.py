@@ -34,7 +34,7 @@ class PlotDialog(QtWidgets.QDialog):
 
 
         # layout
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.canvas)
         layout.addWidget(self.toolbar)
         self.setLayout(layout)
@@ -58,7 +58,7 @@ class DataPlot(PlotDialog):
         "Decorator that throws a warning if no data is already loaded."
         def deco(self, *args, **kargs):
             if self.parent().data is None:
-                QtGui.QMessageBox.warning(self.parent(), 'Warning', 'No data loaded yet.')
+                QtWidgets.QMessageBox.warning(self.parent(), 'Warning', 'No data loaded yet.')
                 return
             method(self, *args, **kargs)
         return deco

@@ -146,8 +146,13 @@ def segmentFolder(infolder, outfolder, minTime, maxInterrupt, doSpeakerSeg):
                 td = dio.trajDataFromH5(fullfn)
 
                 # Preparation
+                print("\tDeleting heads")
+                td.trajs = [x for x in td.trajs if not x.isHead]
                 print("\tAveraging same name trajectories")
                 modelops.averageSameNameTrajectories(td, None)
+                print("\tFilling gaps")
+                modelops.fillGaps(td, 60., 60., None)
+                
 
                 td.trajs = [t for t in td.trajs if t.numFrames > 0]
 

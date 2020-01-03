@@ -286,7 +286,7 @@ class TrajData(object):
     def __init__(self):
         self.trajs = []
         self.filename = None
-        self.framerate = 100.0
+        self.framerate = None
         self.changed = False
         self.trash = []
         self.framePointCount = None

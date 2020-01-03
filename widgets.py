@@ -87,15 +87,18 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.parentWindow.updateFrame()
 
 class FrameSpin(QtWidgets.QSpinBox):
-    def __init__(self, parent):
+    def __init__(self, parent, frameRate=None):
         QtWidgets.QSpinBox.__init__(self, parent)
         self.setWrapping(True)
         self.setAccelerated(True)
+        self.frameRate = frameRate
 
     def textFromValue(self, val):
-        mins = val / 6000
-        secs = (val / 100) % 60
-        frames = val % 100
+        if self.frameRate is None:
+            return '--:--:--'
+        mins = val / (60 * self.frameRate)
+        secs = (val / self.frameRate) % 60
+        frames = val % self.frameRate
         return "%02d':%02d\".%02d" % (mins, secs, frames)
 
 
@@ -188,9 +191,11 @@ class TransportBar(QtWidgets.QWidget):
         model = self.gl.dots.model
         if model.data.empty:
             return
-        fr = model.data.frameRate * self.playSpeed
-        model.frame = int(self.refFrame + (t - self.refTime) * fr) % model.data.numFrames
+        if model.data is not None:
+            fr = model.data.frameRate * self.playSpeed
+            model.frame = int(self.refFrame + (t - self.refTime) * fr) % model.data.numFrames
         self.gl.updateGL()
+        self.labelTotal.setText(self.frameSpin.textFromValue(model.data.numFrames-1))
         self.mainWindow.updateFrame()
         self.mainWindow.updateStatus()
 

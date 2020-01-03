@@ -115,33 +115,33 @@ class ModelState:
 
         x,y,z = px,py,pz
         part, side, subj = name[:2], name[2], name[3]
-        # rise
-        if part in ['Kn','UB']:
-            z += 50
-        # move back
-        if part in ['Kn','Ft']:
-            x = x-50 if subj=='1' else x+50
-        # move forward
-        if part in ['UB']:
-            x = x+100 if subj=='1' else x-100
-        # LB
-        if part == 'LB':
-            # move inside
-            if subj == '1':
-                y = y-80 if side == 'L' else y+80
-            else:
-                y = y+80 if side == 'L' else y-80
-            # lower
-            z -= 100
-            # move forward
-            x = x+20 if subj=='1' else x-20
-        # UB
-        if part == 'UB':
-            # Move outside
-            if subj == '1':
-                y = y+70 if side == 'L' else y-70
-            else:
-                y = y-70 if side == 'L' else y+70
+#        # rise
+#        if part in ['Kn','UB']:
+#            z += 50
+#        # move back
+#        if part in ['Kn','Ft']:
+#            x = x-50 if subj=='1' else x+50
+#        # move forward
+#        if part in ['UB']:
+#            x = x+100 if subj=='1' else x-100
+#        # LB
+#        if part == 'LB':
+#            # move inside
+#            if subj == '1':
+#                y = y-80 if side == 'L' else y+80
+#            else:
+#                y = y+80 if side == 'L' else y-80
+#            # lower
+#            z -= 100
+#            # move forward
+#            x = x+20 if subj=='1' else x-20
+#        # UB
+#        if part == 'UB':
+#            # Move outside
+#            if subj == '1':
+#                y = y+70 if side == 'L' else y-70
+#            else:
+#                y = y-70 if side == 'L' else y+70
 
         self.trajMap[name] = (x, y, z)
 

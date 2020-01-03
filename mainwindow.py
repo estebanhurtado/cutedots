@@ -171,6 +171,7 @@ class CuteDotsMainWindow(QtWidgets.QMainWindow):
             task_descript, cancelbtn, 0, total, self)
         progress.setWindowModality(Qt.WindowModal)
         progress.setWindowTitle("Cutedots")
+        progress.resize(640, 200)
         if cancelbtn == "":
             progress.setCancelButton(None)
         return progress

@@ -83,7 +83,10 @@ class MotionData:
                 subjs[subject] = MotionData({}, self.frameRate)
             subjs[subject].data[name[:3]] = traj
         print(subjs)
-        return subjs['1'], subjs['2']
+        try:
+            return subjs['1'], subjs['2']
+        except:
+            return
 
     def filterParts(self, names):
         md = MotionData({}, self.frameRate)
@@ -175,6 +178,7 @@ class CorrCurves:
 
     @staticmethod
     def xcorrPair(sig1, sig2, span=20, step=12):
+        step = int(step)
         corrLen = 2 * span + 1
         sab = np.zeros(corrLen, dtype=float)
         ssa = np.zeros(corrLen, dtype=float)

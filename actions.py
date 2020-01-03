@@ -13,7 +13,7 @@
 # You should have received a copy of the Reciprocal Public License along with
 # Cutedots. If not, see <http://opensource.org/licenses/rpl-1.5>.
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 import preprocess
 import transform
@@ -26,9 +26,9 @@ import plots
 from logdialog import LogDialog
 
 def displayHtml(parent, title, html):
-    win = QtGui.QDialog(parent)
+    win = QtWidgets.QDialog(parent)
     win.setWindowTitle(title)
-    layout = QtGui.QVBoxLayout()
+    layout = QtWidgets.QVBoxLayout()
     win.setLayout(layout)
     view = QWebView()
     view.setHtml(html)
@@ -189,7 +189,7 @@ class CuteDotsActions(QtCore.QObject):
         "Decorator that throws a warning if no data is already loaded."
         def deco(self, *args, **kargs):
             if self.parent().data is None:
-                QtGui.QMessageBox.warning(self.parent(), 'Warning', 'No data loaded yet.')
+                QtWidgets.QMessageBox.warning(self.parent(), 'Warning', 'No data loaded yet.')
                 return
             method(self, *args, **kargs)
         return deco
@@ -199,6 +199,11 @@ class CuteDotsActions(QtCore.QObject):
         def deco(self, *args, **kargs):
             method(self, *args, **kargs)
             self.parent().gl.updateGL()
+            frameRate = self.parent().gl.dots.model.data.frameRate
+            numFrames = self.parent().gl.dots.model.data.numFrames
+            self.parent().transport.frameSpin.frameRate = frameRate
+            self.parent().transport.setNumFrames(numFrames)
+            print('Set frame rate to', self.parent().gl.dots.model.data.frameRate)
         return deco
 
     def updateNumFrames(method):
@@ -278,13 +283,13 @@ class CuteDotsActions(QtCore.QObject):
     @warnIfNoDataLoaded
     @updateDisplay
     def matchTrajectories(self):
-        threshold, ok = QtGui.QInputDialog.getInteger(
+        threshold, ok = QtWidgets.QInputDialog.getInt(
             self.parent(), "Match trajectories", "Distance threshold (mm)", 20, 0, 1000)
         if not ok: return
-        maxGap, ok = QtGui.QInputDialog.getInteger(
+        maxGap, ok = QtWidgets.QInputDialog.getInt(
             self.parent(), "Match trajectories", "Max. frame gap", 5, -100, 1000)
         if not ok: return
-        minGap, ok = QtGui.QInputDialog.getInteger(
+        minGap, ok = QtWidgets.QInputDialog.getInt(
             self.parent(), "Match trajectories", "Min. frame gap", 0, -100, 1000)
         if not ok: return
         progress = self.parent().mkProgress("Matching trajectories")
@@ -300,12 +305,13 @@ class CuteDotsActions(QtCore.QObject):
     @warnIfNoDataLoaded
     @updateStatus
     def fillGaps(self):
-        maxGap, ok = QtGui.QInputDialog.getDouble(
+        maxGap, ok = QtWidgets.QInputDialog.getDouble(
             self.parent(), "Fill trajectory gaps",
             "Max. gap to fill (secs.)", 0.2, 0.0, 10.0)
         if not ok: return
         progress = self.parent().mkProgress("Filling small gaps...")
         modelops.fillGaps(self.parent().data, maxGap, maxGap, progress)
+        progress.close()
 
     @warnIfNoDataLoaded
     @updateStatus
@@ -315,7 +321,7 @@ class CuteDotsActions(QtCore.QObject):
     @warnIfNoDataLoaded
     @updateStatus
     def removeShort(self):
-        minLength, ok = QtGui.QInputDialog.getInteger(
+        minLength, ok = QtWidgets.QInputDialog.getInt(
             self.parent(), "Remove short trajectories", "Minimum length (frames)", 10, 0)
         if not ok:
             return
@@ -339,7 +345,7 @@ class CuteDotsActions(QtCore.QObject):
     @updateDisplay
     @updateStatus
     def lpFilter(self):
-        cutOff, ok = QtGui.QInputDialog.getDouble(
+        cutOff, ok = QtWidgets.QInputDialog.getDouble(
             self.parent(), "Low pass filter cutoff frequency",
             "Cutoff (36.8% decay - Hz)", 10.0, 0.0, 1000.0)
         transform.LpFilterTrajData(self.parent().data, cutOff)

@@ -56,6 +56,7 @@ def drawWalls():
     drawSideWall(-2500.0,0.0, 1250.0, 0.0, 1.0, 0.0, 2500.0, 5000.0, 10, 20)
 
 def drawChairs():
+    return
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, (0.02,0.02,0.02,1.0))
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, (0.2,0.2,0.2,1.0))
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 80.0)
@@ -162,64 +163,70 @@ def drawSolidCube(size):
 
 
 def drawSingleHead(x1, y1, z1, x2, y2, z2, x3, y3, z3):
-    a = np.array([x3 - x1, y3 - y1, z3 - z1])
-    b = np.array([x2 - x1, y2 - y1, z2 - z1])
-    totaln = np.cross(a, b)
-    n = totaln / np.linalg.norm(totaln)
-    if (x1 * n[0] > 0.0 ):
-        n = n * (-1, -1, -1)
+#    a = np.array([x3 - x1, y3 - y1, z3 - z1]) # A = P3 - P1
+#    b = np.array([x2 - x1, y2 - y1, z2 - z1]) # B = P2 - P1
+#    totaln = np.cross(a, b)                   # Normal = |AxB|
+#    n = totaln / np.linalg.norm(totaln)
+#    if (x1 * n[0] > 0.0 ):
+#        n = n * (-1, -1, -1)
     xm = (x1 + x2 + x3) / 3.
     ym = (y1 + y2 + y3) / 3.
     zm = (z1 + z2 + z3) / 3.
-    vm = np.array([xm, ym, zm])
-    p = vm + 80 * n
-    p[2] -= 20
-    p[0] -= copysign(10,p[0])
+#    vm = np.array([xm, ym, zm])
+#    p = vm + 80 * n
+#    p[2] -= 20
+#    p[0] -= copysign(10,p[0])
+    p = np.array([xm, ym, zm])
     glPushMatrix()
     glTranslatef(p[0], p[1], p[2])
-    drawSolidSphere(120, 20, 20)
+    drawSolidSphere(40, 20, 20)
     glPopMatrix()
 
 def drawTorso(xa, ya, za, xb, yb, zb, xc, yc, zc, xd, yd, zd):
 
-    za += 30
-    zb += 30
-    xc += copysign(20,xc)
-    xd += copysign(20,xd)
-    top_thick = 80
-    bottom_thick = 60
+    #za += 30
+    #zb += 30
+    #xc += copysign(20,xc)
+    #xd += copysign(20,xd)
+    #top_thick = 5
+    #bottom_thick = 5
 
     glBegin(GL_QUADS)
     try:
-      glVertex3fv((xa+top_thick,ya,za))
-      glVertex3fv((xb+top_thick,yb,zb))
-      glVertex3fv((xc+bottom_thick,yc,zc))
-      glVertex3fv((xd+bottom_thick,yd,zd))
+      glVertex3fv((xa,ya,za))
+      glVertex3fv((xb,yb,zb))
+      glVertex3fv((xc,yc,zc))
+      glVertex3fv((xd,yd,zd))
 
-      glVertex3fv((xa-top_thick,ya,za))
-      glVertex3fv((xb-top_thick,yb,zb))
-      glVertex3fv((xc-bottom_thick,yc,zc))
-      glVertex3fv((xd-bottom_thick,yd,zd))
+#      glVertex3fv((xa+top_thick,ya,za))
+#      glVertex3fv((xb+top_thick,yb,zb))
+#      glVertex3fv((xc+bottom_thick,yc,zc))
+#      glVertex3fv((xd+bottom_thick,yd,zd))
 
-      glVertex3fv((xc-bottom_thick,yc,zc))
-      glVertex3fv((xd-bottom_thick,yd,zd))
-      glVertex3fv((xd+bottom_thick,yd,zd))
-      glVertex3fv((xc+bottom_thick,yc,zc))
+#      glVertex3fv((xa-top_thick,ya,za))
+#      glVertex3fv((xb-top_thick,yb,zb))
+#      glVertex3fv((xc-bottom_thick,yc,zc))
+#      glVertex3fv((xd-bottom_thick,yd,zd))
 
-      glVertex3fv((xa-top_thick,ya,za))
-      glVertex3fv((xb-top_thick,yb,zb))
-      glVertex3fv((xb+top_thick,yb,zb))
-      glVertex3fv((xa+top_thick,ya,za))
+#      glVertex3fv((xc-bottom_thick,yc,zc))
+#      glVertex3fv((xd-bottom_thick,yd,zd))
+#      glVertex3fv((xd+bottom_thick,yd,zd))
+#      glVertex3fv((xc+bottom_thick,yc,zc))
+
+#      glVertex3fv((xa-top_thick,ya,za))
+#      glVertex3fv((xb-top_thick,yb,zb))
+#      glVertex3fv((xb+top_thick,yb,zb))
+#      glVertex3fv((xa+top_thick,ya,za))
       
-      glVertex3fv((xa-top_thick,ya,za))
-      glVertex3fv((xd-bottom_thick,yd,zd))
-      glVertex3fv((xd+bottom_thick,yd,zd))
-      glVertex3fv((xa+top_thick,ya,za))
+#      glVertex3fv((xa-top_thick,ya,za))
+#      glVertex3fv((xd-bottom_thick,yd,zd))
+#      glVertex3fv((xd+bottom_thick,yd,zd))
+#      glVertex3fv((xa+top_thick,ya,za))
 
-      glVertex3fv((xb-top_thick,yb,zb))
-      glVertex3fv((xc-bottom_thick,yc,zc))
-      glVertex3fv((xc+bottom_thick,yc,zc))
-      glVertex3fv((xb+top_thick,yb,zb))
+#      glVertex3fv((xb-top_thick,yb,zb))
+#      glVertex3fv((xc-bottom_thick,yc,zc))
+#      glVertex3fv((xc+bottom_thick,yc,zc))
+#      glVertex3fv((xb+top_thick,yb,zb))
 
     finally:
       glEnd()

@@ -141,7 +141,13 @@ def fillGaps(data, maxGapTime, maxSampleTime, progress):
         else:
             indTrajs.setdefault(traj.name, []).append(traj)
     deleteList = []
+    numTrajs = len(indTrajs.keys())
+    if not progress is None:
+        progress.setValue(0)
+    trajNum = 0
     for name, trajs in indTrajs.items():
+        trajNum +=1
+        progress.setValue(int(100.0*trajNum/numTrajs))
         # sort trajs by first frame
         trajs = sorted(trajs, key=lambda t: t.beginFrame)
         t0 = trajs[0]

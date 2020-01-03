@@ -119,15 +119,17 @@ def rawDataFromCSV2(filename, progress):
         framecount = 100
         rd = RawData()
         rd.filename = filename
-        rd.frameRate = 100.0
+        rd.frameRate = None
         counter = 0
 
         for line in pointsfile:
             counter = counter + 1
             # Line with the information
             if (counter == 1):
-                line_array = line.split(',')
-                framecount = int(line_array[11])
+                line_array = line.strip(' \n\r\t').split(',')
+                metadata = dict(zip(line_array[::2], line_array[1::2]))
+                framecount = int(metadata['Total Exported Frames'])
+                rd.frameRate = float(metadata['Export Frame Rate'])
             # Line containing a frame
             if (counter > 7):
                 line_array = line.split(',')
@@ -142,6 +144,7 @@ def rawDataFromCSV2(filename, progress):
     if (not framecount):
         print ('Error frame count not found!')
 
+    print("Framerate:", rd.frameRate)
     return rd
     
 def readFrameFromArray2(line_array, line_number):
@@ -202,6 +205,7 @@ def trajDataFromH5(filename, progress=None):
         td.changed = True
     else:
         td.frameRate = group.attrs['frame_rate']
+    print('Frame rate:', td.frameRate)
     if not 'format_version' in group.attrs:
         print("Warning, no format version specified. Save to correct.")
         td.changed = True
@@ -232,7 +236,7 @@ def trajDataSaveH5(trajData, progress=None):
     f = h5py.File(trajData.filename, 'w')
     trajgroup = f.create_group('trajectories')
     trajgroup.attrs['format_version'] = 'dots 0'
-    trajgroup.attrs['frame_rate'] = trajData.framerate
+    trajgroup.attrs['frame_rate'] = trajData.frameRate
     idx = 0
     numTrajs = trajData.numTrajs
     for traj in trajData.trajs:
